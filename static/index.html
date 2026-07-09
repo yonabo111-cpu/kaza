@@ -530,6 +530,14 @@
 
   <section class="tab" id="tab-shopping">
     <div class="card">
+      <h2>🍝 ממתכון לרשימת קניות <span class="note">כתבו מה בא לכם לאכול — נכין את המצרכים</span></h2>
+      <form class="grid" onsubmit="findRecipe(event)">
+        <label class="f" style="grid-column: 1 / -2">מה בא לכם לאכול?<input id="recipeDish" required maxlength="80" placeholder='למשל: "פסטה בולונז" או "בא לי שקשוקה"'></label>
+        <button class="btn" type="submit" id="recipeBtn">מצאו מצרכים</button>
+      </form>
+      <div class="inline-panel" id="recipeResult" style="display:none"></div>
+    </div>
+    <div class="card">
       <h2>🛒 רשימת קניות משותפת</h2>
       <form class="grid" onsubmit="addShopItem(event)">
         <label class="f">מה צריך?<input id="shopName" required maxlength="80" placeholder="למשל: חלב"></label>
@@ -943,6 +951,48 @@ function addCategory(ev){
 }
 const setBudget = (id,val) => act(()=>api("/categories/"+id,"PATCH",{budget:parseFloat(val)||0}));
 const deleteCategory = async id => { if(await uiConfirm("למחוק את הקטגוריה?","מחיקה",true)) act(()=>api("/categories/"+id,"DELETE")); };
+
+/* ================= recipes → shopping ================= */
+async function findRecipe(ev){
+  ev.preventDefault();
+  const btn = document.getElementById("recipeBtn");
+  const box = document.getElementById("recipeResult");
+  btn.disabled = true; btn.textContent = "רגע, בודק…";
+  try{
+    const r = await api("/shopping/recipe","POST",{dish:recipeDish.value});
+    renderRecipeResult(r);
+  }catch(e){
+    if(e.message !== "auth") toast(e.message);
+    box.style.display = "none";
+  }finally{
+    btn.disabled = false; btn.textContent = "מצאו מצרכים";
+  }
+}
+function renderRecipeResult(r){
+  const box = document.getElementById("recipeResult");
+  box.style.display = "";
+  box.innerHTML =
+    `<div style="font-size:14px; margin-bottom:6px">🍽️ <b>${esc(r.dish)}</b> — סמנו רק מה שחסר בבית:</div>` +
+    r.ingredients.map(ing=>`<label class="list-item" style="cursor:pointer">
+      <input type="checkbox" class="check recipe-ing" checked data-name="${esc(ing.name)}" data-note="${esc(ing.note||"")}">
+      <span class="grow">${esc(ing.name)} ${ing.note?`<span class="meta">· ${esc(ing.note)}</span>`:""}</span>
+    </label>`).join("") +
+    `<div class="row-actions" style="margin-top:10px">
+      <button class="btn" onclick="addRecipeItems('${esc(r.dish)}')">הוספת המסומנים לרשימה 🛒</button>
+      <button class="btn ghost" type="button" onclick="document.getElementById('recipeResult').style.display='none'">ביטול</button>
+    </div>`;
+}
+async function addRecipeItems(dish){
+  const items = [...document.querySelectorAll(".recipe-ing:checked")]
+    .map(c=>({name:c.dataset.name, note:(c.dataset.note ? c.dataset.note + " · " : "") + "ל" + dish}));
+  if(!items.length){ toast("לא סומן אף פריט"); return; }
+  act(async ()=>{
+    const r = await api("/shopping/bulk","POST",{items});
+    document.getElementById("recipeResult").style.display = "none";
+    document.getElementById("recipeDish").value = "";
+    toast(`נוספו ${r.added} פריטים לרשימה${r.skipped ? ` (${r.skipped} כבר היו בה)` : ""}`, "success");
+  });
+}
 
 /* ================= shopping ================= */
 function addShopItem(ev){

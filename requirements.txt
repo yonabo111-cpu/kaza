@@ -1,3 +1,4 @@
 flask>=3.0
 waitress>=3.0
 gunicorn>=21.0; sys_platform != "win32"
+anthropic>=0.40  # אופציונלי בפועל: נדרש רק לפיצ'ר מתכונים-חכמים (עם ANTHROPIC_API_KEY)

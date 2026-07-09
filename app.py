@@ -4,6 +4,7 @@
 Flask + SQLite. משתמשים, משקי־בית (דירות) עם קוד הזמנה,
 הוצאות עם חלוקה בין שותפים, תקציבים, קניות, חשבונות ומטלות.
 """
+import json
 import os
 import re
 import secrets
@@ -14,6 +15,8 @@ from functools import wraps
 
 from flask import Flask, g, jsonify, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
+
+from recipes import normalize as recipe_normalize, resolve_builtin
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.environ.get("DATA_DIR", os.path.join(BASE, "data"))
@@ -129,6 +132,11 @@ CREATE TABLE IF NOT EXISTS private_expenses(
   descr TEXT NOT NULL,
   amount REAL NOT NULL,
   category TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS recipe_cache(
+  dish_key TEXT PRIMARY KEY,
+  payload TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 """
@@ -820,6 +828,124 @@ def finish_shopping():
                        equal_shares(amount, ids, payer_id))
     db().execute("DELETE FROM shopping WHERE household_id=? AND done=1", (g.hid,))
     return jsonify(ok=True)
+
+
+# ---------------------------------------------------------------- recipes
+
+RECIPE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "dish": {"type": "string"},
+        "ingredients": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"name": {"type": "string"}, "note": {"type": "string"}},
+                "required": ["name", "note"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["dish", "ingredients"],
+    "additionalProperties": False,
+}
+
+RECIPE_PROMPT = (
+    "צור רשימת קניות עבור המנה: \"{dish}\".\n"
+    "כללים: מצרכים לבישול ביתי ל-2-3 סועדים, בעברית. אל תכלול מים, מלח, פלפל שחור "
+    "או דברים שיש בכל מטבח. בשדה note כתוב כמות קצרה (למשל: \"500 גרם\", \"2 יחידות\", "
+    "\"קופסה\"). בשדה dish כתוב את שם המנה המנוקה. "
+    "אם הטקסט אינו שם של מאכל אמיתי — החזר ingredients ריק."
+)
+
+
+def ai_recipe(dish):
+    """מצרכים מ-Claude — פעיל רק כשמוגדרים פרטי גישה ל-API (ANTHROPIC_API_KEY).
+    מחזיר {dish, ingredients} או None (אין גישה / שגיאה / לא מאכל)."""
+    try:
+        import anthropic
+    except ImportError:
+        return None
+    try:
+        client = anthropic.Anthropic(timeout=30.0)
+        response = client.messages.create(
+            model=os.environ.get("CLAUDE_MODEL", "claude-opus-4-8"),
+            max_tokens=2000,
+            output_config={"format": {"type": "json_schema", "schema": RECIPE_SCHEMA}},
+            messages=[{"role": "user", "content": RECIPE_PROMPT.format(dish=dish)}],
+        )
+        if response.stop_reason == "refusal":
+            return None
+        text = next((b.text for b in response.content if b.type == "text"), None)
+        if not text:
+            return None
+        data = json.loads(text)
+        ingredients = [
+            {"name": str(i.get("name", "")).strip()[:80], "note": str(i.get("note", "")).strip()[:80]}
+            for i in data.get("ingredients", []) if str(i.get("name", "")).strip()
+        ][:25]
+        if not ingredients:
+            return None
+        return {"dish": (str(data.get("dish", "")).strip() or dish)[:80], "ingredients": ingredients}
+    except Exception:
+        return None
+
+
+@app.post("/api/shopping/recipe")
+@household_required
+def recipe_lookup():
+    dish_raw = (body().get("dish") or "").strip()
+    if not dish_raw or len(dish_raw) > 80:
+        return err("נא לכתוב מה בא לכם לאכול (עד 80 תווים)")
+    hit = resolve_builtin(dish_raw)
+    if hit:
+        return jsonify(dish=hit["dish"], ingredients=hit["ingredients"], source="builtin")
+    key = recipe_normalize(dish_raw)
+    if not key:
+        return err("נא לכתוב שם של מאכל")
+    row = db().execute("SELECT payload FROM recipe_cache WHERE dish_key=?", (key,)).fetchone()
+    if row:
+        cached = json.loads(row["payload"])
+        return jsonify(dish=cached["dish"], ingredients=cached["ingredients"], source="cache")
+    ai = ai_recipe(key)
+    if ai:
+        db().execute(
+            "INSERT OR REPLACE INTO recipe_cache(dish_key,payload) VALUES (?,?)",
+            (key, json.dumps(ai, ensure_ascii=False)),
+        )
+        return jsonify(dish=ai["dish"], ingredients=ai["ingredients"], source="ai")
+    return err(f'לא מצאתי מתכון ל"{dish_raw}" — נסו שם מנה נפוץ יותר, או הוסיפו פריטים ידנית', 404)
+
+
+@app.post("/api/shopping/bulk")
+@household_required
+def add_shopping_bulk():
+    items = body().get("items")
+    if not isinstance(items, list) or not (1 <= len(items) <= 40):
+        return err("רשימת פריטים לא תקינה")
+    existing = {
+        r["name"].strip() for r in db().execute(
+            "SELECT name FROM shopping WHERE household_id=? AND done=0", (g.hid,)
+        )
+    }
+    added = skipped = 0
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        name = str(it.get("name") or "").strip()[:80]
+        note = str(it.get("note") or "").strip()[:80]
+        if not name:
+            continue
+        if name in existing:
+            skipped += 1
+            continue
+        db().execute(
+            "INSERT INTO shopping(household_id,name,note,urgent,added_by) VALUES (?,?,?,0,?)",
+            (g.hid, name, note, g.user["id"]),
+        )
+        existing.add(name)
+        added += 1
+    return jsonify(ok=True, added=added, skipped=skipped)
 
 
 # ---------------------------------------------------------------- bills

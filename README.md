@@ -20,6 +20,12 @@ dark-mode support, and a friendly, modern look.
 - **Budgets** — monthly cap per category with progress meters and overspend alerts.
 - **Shopping list** — shared, with urgent flags; checked-off items can be converted
   into a shared expense in one click.
+- **Recipe → shopping list 🍝** — type "I feel like pasta bolognese" (in Hebrew,
+  free-form) and get the ingredient list to review and add in one click. ~30
+  common Israeli home dishes are built in and work offline; any other dish is
+  resolved by Claude when an `ANTHROPIC_API_KEY` is configured (results are
+  cached in SQLite so each dish is paid for once). Already-listed items are
+  skipped, and added items are tagged with the dish name.
 - **Recurring bills** — rent, utilities, etc. with due days; marking a bill paid
   auto-creates an equally-split expense. Overdue bills are flagged.
 - **Chores** — rotating assignments; "done" passes the turn to the next roommate.
@@ -64,27 +70,34 @@ The server listens on `0.0.0.0`, so roommates on the same Wi-Fi can use
 
 ### Configuration (environment variables)
 
-| Variable     | Default        | Purpose                                  |
-|--------------|----------------|------------------------------------------|
-| `PORT`       | `5050`         | HTTP port                                 |
-| `DATA_DIR`   | `./data`       | Where the SQLite DB and secret key live   |
-| `SECRET_KEY` | auto-generated | Session signing key (persisted to a file) |
+| Variable            | Default           | Purpose                                  |
+|---------------------|-------------------|------------------------------------------|
+| `PORT`              | `5050`            | HTTP port                                 |
+| `DATA_DIR`          | `./data`          | Where the SQLite DB and secret key live   |
+| `SECRET_KEY`        | auto-generated    | Session signing key (persisted to a file) |
+| `ANTHROPIC_API_KEY` | unset             | Optional — enables AI recipe lookup for dishes not in the built-in cookbook ([get a key](https://console.anthropic.com)) |
+| `CLAUDE_MODEL`      | `claude-opus-4-8` | Model for recipe lookup (e.g. `claude-haiku-4-5` for cheaper/faster responses) |
 
 ## Tests
 
-An end-to-end API test suite (78 checks) lives in [`tests/`](tests): it simulates
+An end-to-end API test suite (96 checks) lives in [`tests/`](tests): it simulates
 two roommates through every flow — registration, invite codes, all split types,
-balances and settlement, bills, shopping, chores, cross-household isolation, and
-the privacy guarantees of the personal ledger.
+balances and settlement, bills, shopping, chores, cross-household isolation, the
+privacy guarantees of the personal ledger, and recipe → shopping-list resolution.
 
 ```bash
 # start the server against a throwaway database first:
 DATA_DIR=/tmp/home-test python app.py
 # then, in another terminal:
 pip install requests
-python tests/api_test.py
-python tests/personal_test.py
+python tests/api_test.py       # 52 checks
+python tests/personal_test.py  # 26 checks
+python tests/recipe_test.py    # 18 checks
 ```
+
+> Each suite registers `testa@example.com`, so run them against a **fresh**
+> `DATA_DIR` one at a time (wipe the DB between suites), not all three against
+> one database.
 
 > The tests register their own users on the running server — point `DATA_DIR`
 > at a disposable location, not your real database.
