@@ -26,6 +26,10 @@ dark-mode support, and a friendly, modern look.
   resolved by Claude when an `ANTHROPIC_API_KEY` is configured (results are
   cached in SQLite so each dish is paid for once). Already-listed items are
   skipped, and added items are tagged with the dish name.
+- **Bulletin board 📌** — sticky notes on the dashboard for quick updates between
+  roommates ("technician coming tomorrow", "new Wi-Fi code"). Notes can be pinned
+  to the top; the board is shared, so any roommate can take a note down — like a
+  real note on the fridge. Household isolation is enforced server-side.
 - **Recurring bills** — rent, utilities, etc. with due days; marking a bill paid
   auto-creates an equally-split expense. Overdue bills are flagged.
 - **Chores** — rotating assignments; "done" passes the turn to the next roommate.
@@ -80,10 +84,11 @@ The server listens on `0.0.0.0`, so roommates on the same Wi-Fi can use
 
 ## Tests
 
-An end-to-end API test suite (96 checks) lives in [`tests/`](tests): it simulates
+An end-to-end API test suite (113 checks) lives in [`tests/`](tests): it simulates
 two roommates through every flow — registration, invite codes, all split types,
 balances and settlement, bills, shopping, chores, cross-household isolation, the
-privacy guarantees of the personal ledger, and recipe → shopping-list resolution.
+privacy guarantees of the personal ledger, recipe → shopping-list resolution, and
+bulletin-board permissions.
 
 ```bash
 # start the server against a throwaway database first:
@@ -93,6 +98,7 @@ pip install requests
 python tests/api_test.py       # 52 checks
 python tests/personal_test.py  # 26 checks
 python tests/recipe_test.py    # 18 checks
+python tests/bulletin_test.py  # 17 checks
 ```
 
 > Each suite registers `testa@example.com`, so run them against a **fresh**

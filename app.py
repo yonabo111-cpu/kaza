@@ -139,6 +139,14 @@ CREATE TABLE IF NOT EXISTS recipe_cache(
   payload TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS bulletin_board(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  household_id INTEGER NOT NULL REFERENCES households(id),
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  content TEXT NOT NULL,
+  is_pinned INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 MONTH_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
@@ -237,6 +245,23 @@ def members(hid):
 
 def member_ids(hid):
     return [m["id"] for m in members(hid)]
+
+
+def bulletin_notes(hid):
+    """מודעות הדירה: נעוצות קודם, ואז מהחדשה לישנה — עם שם הכותב."""
+    names = {m["id"]: m["name"] for m in members(hid)}
+    return [
+        {
+            "id": n["id"], "content": n["content"], "is_pinned": bool(n["is_pinned"]),
+            "created_at": n["created_at"],
+            "author_id": n["user_id"], "author": names.get(n["user_id"], "?"),
+        }
+        for n in db().execute(
+            "SELECT * FROM bulletin_board WHERE household_id=?"
+            " ORDER BY is_pinned DESC, created_at DESC, id DESC",
+            (hid,),
+        )
+    ]
 
 
 def new_invite_code():
@@ -613,7 +638,7 @@ def state():
         balances=balances, transfers=transfers, settlements=settlements,
         shopping=shopping, bills=bills, chores=chores, chart=chart,
         total=totals.get(month, 0), prev_total=totals.get(prev_month, 0),
-        personal=personal,
+        personal=personal, bulletin=bulletin_notes(hid),
     )
 
 
@@ -1079,6 +1104,40 @@ def done_chore(cid):
 @household_required
 def delete_chore(cid):
     db().execute("DELETE FROM chores WHERE id=? AND household_id=?", (cid, g.hid))
+    return jsonify(ok=True)
+
+
+# ---------------------------------------------------------------- bulletin board
+
+@app.get("/api/bulletin")
+@household_required
+def get_bulletin():
+    return jsonify(notes=bulletin_notes(g.hid))
+
+
+@app.post("/api/bulletin")
+@household_required
+def add_bulletin_note():
+    d = body()
+    content = (d.get("content") or "").strip()
+    if not content or len(content) > 300:
+        return err("נא לכתוב תוכן למודעה (עד 300 תווים)")
+    db().execute(
+        "INSERT INTO bulletin_board(household_id,user_id,content,is_pinned) VALUES (?,?,?,?)",
+        (g.hid, g.user["id"], content, 1 if d.get("is_pinned") else 0),
+    )
+    return jsonify(ok=True)
+
+
+@app.delete("/api/bulletin/<int:nid>")
+@household_required
+def delete_bulletin_note(nid):
+    # לוח משותף — כל חבר בדירה רשאי למחוק כל מודעה
+    cur = db().execute(
+        "DELETE FROM bulletin_board WHERE id=? AND household_id=?", (nid, g.hid)
+    )
+    if cur.rowcount == 0:
+        return err("מודעה לא נמצאה", 404)
     return jsonify(ok=True)
 
 
