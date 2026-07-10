@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>ניהול הבית</title>
+<title>קאזה · Kaza</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -265,6 +265,44 @@
   .note-meta{display:flex; align-items:center; gap:6px; margin-top:10px; font-size:12px; color:var(--ink2);}
   .note-meta .del{margin-inline-start:auto; padding:2px 7px;}
 
+  /* ============ notifications ============ */
+  .bell-wrap{position:relative;}
+  .bell{
+    width:36px; height:36px; border-radius:999px; border:none; cursor:pointer;
+    background:rgba(255,255,255,.14); color:#fff; font-size:16px; position:relative;
+    transition:background .15s;
+  }
+  .bell:hover{background:rgba(255,255,255,.24);}
+  .bell-badge{
+    position:absolute; top:-5px; inset-inline-start:-5px;
+    background:var(--critical); color:#fff; font-size:10.5px; font-weight:700;
+    min-width:18px; height:18px; border-radius:999px; padding:0 4px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 2px rgba(255,255,255,.55);
+  }
+  .notif-panel{
+    position:absolute; top:calc(100% + 10px); inset-inline-end:0;
+    width:330px; max-width:calc(100vw - 40px); z-index:55; display:none;
+    background:var(--surface); color:var(--ink); text-align:start;
+    border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-pop);
+    overflow:hidden;
+  }
+  body.notif-open .notif-panel{display:block; animation:fadein .15s ease;}
+  .notif-head{font-size:13.5px; font-weight:600; padding:12px 14px 9px; border-bottom:1px solid var(--grid);}
+  .notif-item{
+    display:flex; gap:9px; align-items:flex-start; padding:10px 12px;
+    font-size:13px; line-height:1.45; cursor:pointer;
+    border-bottom:1px solid var(--grid); border-inline-start:3px solid transparent;
+    transition:background .12s;
+  }
+  .notif-item:last-child{border-bottom:none;}
+  .notif-item:hover{background:color-mix(in srgb, var(--accent) 5%, transparent);}
+  .notif-item.critical{border-inline-start-color:var(--critical);}
+  .notif-item.warn{border-inline-start-color:var(--warn);}
+  .notif-item.info{border-inline-start-color:var(--accent);}
+  .notif-item .ic{font-size:15px; flex-shrink:0;}
+  .notif-empty{padding:24px 14px; text-align:center; color:var(--muted); font-size:13px;}
+
   /* ============ auth & setup ============ */
   .screen{display:none;}
   .screen.active{display:block;}
@@ -351,8 +389,8 @@
   <div class="center-wrap">
     <div class="auth-card">
       <div class="logo-dot">🏠</div>
-      <h1>ניהול הבית</h1>
-      <div class="tagline">תקציב, קניות, חשבונות ומטלות — לדירה שלכם</div>
+      <h1>קאזה</h1>
+      <div class="tagline">הבית המשותף שלכם, מסודר — תקציב, קניות, חשבונות ומטלות</div>
       <div class="auth-tabs">
         <button id="authTabLogin" class="active" onclick="authMode('login')">התחברות</button>
         <button id="authTabReg" onclick="authMode('register')">הרשמה</button>
@@ -408,10 +446,19 @@
         <div class="greet" id="heroGreeting"></div>
         <div class="house" id="heroHouse"></div>
       </div>
-      <div class="month-nav">
-        <button onclick="shiftMonth(-1)" title="חודש קודם">›</button>
-        <div class="label" id="monthLabel"></div>
-        <button onclick="shiftMonth(1)" title="חודש הבא">‹</button>
+      <div style="display:flex; align-items:center; gap:8px">
+        <div class="month-nav">
+          <button onclick="shiftMonth(-1)" title="חודש קודם">›</button>
+          <div class="label" id="monthLabel"></div>
+          <button onclick="shiftMonth(1)" title="חודש הבא">‹</button>
+        </div>
+        <div class="bell-wrap">
+          <button class="bell" onclick="toggleNotifPanel(event)" title="התראות">🔔<span id="bellBadge" class="bell-badge" style="display:none"></span></button>
+          <div class="notif-panel" id="notifPanel">
+            <div class="notif-head">🔔 התראות</div>
+            <div id="notifList"></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="hero-members" id="heroMembers"></div>
@@ -1058,6 +1105,43 @@ function finishShopping(ev, withExpense){
   });
 }
 
+/* ================= notifications ================= */
+const seenKey = () => "kazaNotifSeen:" + (S?.user?.id || 0);
+function seenIds(){
+  try{ return new Set(JSON.parse(localStorage.getItem(seenKey()) || "[]")); }
+  catch(e){ return new Set(); }
+}
+function renderNotifications(){
+  const list = S.notifications || [];
+  const seen = seenIds();
+  const unseen = list.filter(n=>!seen.has(n.id)).length;
+  const badge = document.getElementById("bellBadge");
+  badge.style.display = unseen ? "flex" : "none";
+  badge.textContent = unseen > 9 ? "9+" : unseen;
+  document.getElementById("notifList").innerHTML = list.length ? list.map(n=>`
+    <div class="notif-item ${n.severity}" onclick="openNotif('${n.tab}')">
+      <span class="ic">${n.icon}</span><span>${esc(n.text)}</span>
+    </div>`).join("")
+  : `<div class="notif-empty">✨ אין התראות — הכול תחת שליטה</div>`;
+}
+function toggleNotifPanel(ev){
+  if(ev) ev.stopPropagation();
+  const open = document.body.classList.toggle("notif-open");
+  if(open){
+    // פתיחת הפאנל מסמנת הכול כנקרא — הבאדג' מתאפס, הרשימה נשארת
+    localStorage.setItem(seenKey(), JSON.stringify((S.notifications||[]).map(n=>n.id)));
+    renderNotifications();
+  }
+}
+function openNotif(tab){
+  document.body.classList.remove("notif-open");
+  switchTab(tab);
+}
+document.addEventListener("click", e=>{
+  if(document.body.classList.contains("notif-open") && !e.target.closest(".bell-wrap"))
+    document.body.classList.remove("notif-open");
+});
+
 /* ================= bulletin board ================= */
 /* רענון הלוח בלבד דרך ה-GET הייעודי — בלי לטעון מחדש את כל המצב */
 async function actBulletin(fn){
@@ -1357,6 +1441,7 @@ function renderAll(){
     fillSelect(document.getElementById(id), peopleOpts());
   if(!document.getElementById("exDate").value) document.getElementById("exDate").value = localToday();
   if(!document.getElementById("pDate").value) document.getElementById("pDate").value = localToday();
+  renderNotifications();
   renderDash(); renderExpenses(); renderPersonal(); renderBudgets(); renderShopping(); renderBills(); renderChores(); renderSettings();
 }
 

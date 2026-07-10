@@ -1,4 +1,6 @@
-# 🏠 Home Manager
+# 🏠 Kaza (קאזה)
+
+**Kaza** — like *casa*, but with roommates.
 
 A full-stack web app for roommates sharing an apartment: track shared expenses with
 automatic settlement ("who owes whom"), monthly budgets, a shared shopping list,
@@ -39,6 +41,12 @@ dark-mode support, and a friendly, modern look.
   (your share of shared expenses + your private ones).
 - **Dashboard** — monthly totals vs. last month, budget meters, 6-month trend
   chart, upcoming bills and urgent shopping items.
+- **In-app notifications 🔔** — a bell with an unread badge: overdue / upcoming
+  bills, budget overruns (household and personal), open debts, your chore turn
+  and urgent shopping. Notifications are *derived* from current state on every
+  request — no extra table, no scheduler — so they appear when a condition holds
+  and disappear the moment it's resolved. Clicking one deep-links to the relevant
+  tab; read-state is kept client-side per user.
 - **Backup** — one-click JSON export (includes your own private expenses only).
 
 ## Architecture
@@ -84,11 +92,11 @@ The server listens on `0.0.0.0`, so roommates on the same Wi-Fi can use
 
 ## Tests
 
-An end-to-end API test suite (113 checks) lives in [`tests/`](tests): it simulates
+An end-to-end API test suite (129 checks) lives in [`tests/`](tests): it simulates
 two roommates through every flow — registration, invite codes, all split types,
 balances and settlement, bills, shopping, chores, cross-household isolation, the
-privacy guarantees of the personal ledger, recipe → shopping-list resolution, and
-bulletin-board permissions.
+privacy guarantees of the personal ledger, recipe → shopping-list resolution,
+bulletin-board permissions, and notification derivation.
 
 ```bash
 # start the server against a throwaway database first:
@@ -99,6 +107,7 @@ python tests/api_test.py       # 52 checks
 python tests/personal_test.py  # 26 checks
 python tests/recipe_test.py    # 18 checks
 python tests/bulletin_test.py  # 17 checks
+python tests/notif_test.py     # 16 checks
 ```
 
 > Each suite registers `testa@example.com`, so run them against a **fresh**
@@ -134,6 +143,5 @@ data survives redeploys.
 ## Roadmap
 
 - Password reset via email, email verification
-- In-app notifications (bill due soon, budget exceeded, your chore turn)
 - Monthly report export
 - Postgres option for ephemeral-disk hosts

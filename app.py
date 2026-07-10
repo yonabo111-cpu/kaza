@@ -10,7 +10,7 @@ import re
 import secrets
 import sqlite3
 import time
-from datetime import timedelta
+from datetime import date, timedelta
 from functools import wraps
 
 from flask import Flask, g, jsonify, request, session
@@ -480,6 +480,99 @@ def join_household():
     return jsonify(ok=True)
 
 
+# ---------------------------------------------------------------- notifications
+
+def build_notifications(hid, uid):
+    """התראות בתוך האפליקציה — נגזרות מהמצב הנוכחי (תמיד ביחס להיום, לא לחודש המוצג).
+
+    בלי טבלה ובלי תזמון: התראה מופיעה כשהתנאי מתקיים ונעלמת כשהוא נפתר.
+    """
+    today = date.today()
+    month = today.strftime("%Y-%m")
+    ils = lambda n: f"{n:,.0f} ₪"
+    out = []
+
+    # חשבונות שטרם שולמו החודש: באיחור / מתקרבים ליום החיוב
+    paid = {r["bill_id"] for r in db().execute(
+        "SELECT bp.bill_id FROM bill_payments bp JOIN bills b ON b.id=bp.bill_id"
+        " WHERE bp.month=? AND b.household_id=?", (month, hid))}
+    for b in db().execute("SELECT * FROM bills WHERE household_id=? ORDER BY due_day", (hid,)):
+        if b["id"] in paid:
+            continue
+        if today.day > b["due_day"]:
+            out.append({"id": f"bill-late-{b['id']}-{month}", "severity": "critical", "icon": "🧾",
+                        "text": f"״{b['name']}״ באיחור — יום החיוב ({b['due_day']} בחודש) עבר",
+                        "tab": "bills"})
+        elif b["due_day"] - today.day <= 3:
+            out.append({"id": f"bill-due-{b['id']}-{month}", "severity": "warn", "icon": "🧾",
+                        "text": f"״{b['name']}״ ({ils(b['amount'])}) לתשלום עד יום {b['due_day']} בחודש",
+                        "tab": "bills"})
+
+    # תקציבי הדירה: חריגה / התקרבות לתקרה
+    spent = {r["category_id"]: r["s"] for r in db().execute(
+        "SELECT category_id, SUM(amount) s FROM expenses"
+        " WHERE household_id=? AND substr(date,1,7)=? GROUP BY category_id", (hid, month))}
+    for c in db().execute("SELECT * FROM categories WHERE household_id=? AND budget>0", (hid,)):
+        s = spent.get(c["id"], 0)
+        if s > c["budget"]:
+            out.append({"id": f"budget-over-{c['id']}-{month}", "severity": "critical", "icon": "🎯",
+                        "text": f"חריגה בתקציב ״{c['name']}״ — {ils(s)} מתוך {ils(c['budget'])}",
+                        "tab": "budgets"})
+        elif s >= 0.85 * c["budget"]:
+            out.append({"id": f"budget-near-{c['id']}-{month}", "severity": "warn", "icon": "🎯",
+                        "text": f"״{c['name']}״ מתקרב לתקרה — {ils(s)} מתוך {ils(c['budget'])}",
+                        "tab": "budgets"})
+
+    # התקציב האישי שלי (פרטי — רק המשתמש הנוכחי רואה)
+    row = db().execute("SELECT personal_budget FROM users WHERE id=?", (uid,)).fetchone()
+    pb = row["personal_budget"] if row else 0
+    if pb > 0:
+        share = db().execute(
+            "SELECT COALESCE(SUM(es.share),0) s FROM expense_shares es"
+            " JOIN expenses e ON e.id=es.expense_id"
+            " WHERE es.user_id=? AND e.household_id=? AND substr(e.date,1,7)=?",
+            (uid, hid, month)).fetchone()["s"]
+        priv = db().execute(
+            "SELECT COALESCE(SUM(amount),0) s FROM private_expenses"
+            " WHERE user_id=? AND substr(date,1,7)=?", (uid, month)).fetchone()["s"]
+        combined = share + priv
+        if combined > pb:
+            out.append({"id": f"personal-over-{month}", "severity": "critical", "icon": "🔒",
+                        "text": f"חרגת מהתקציב האישי — {ils(combined)} מתוך {ils(pb)}",
+                        "tab": "personal"})
+        elif combined >= 0.85 * pb:
+            out.append({"id": f"personal-near-{month}", "severity": "warn", "icon": "🔒",
+                        "text": f"התקציב האישי מתקרב לתקרה — {ils(combined)} מתוך {ils(pb)}",
+                        "tab": "personal"})
+
+    # חוב פתוח שלי מול השותפים
+    mine = next((b["balance"] for b in compute_balances(hid) if b["id"] == uid), 0)
+    if mine < -0.01:
+        out.append({"id": "debt", "severity": "info", "icon": "💸",
+                    "text": f"יש לך חוב פתוח של {ils(-mine)} לשותפים — אפשר לסגור בלשונית הוצאות",
+                    "tab": "expenses"})
+
+    # מטלות שהתור שלי
+    my = [c["name"] for c in db().execute(
+        "SELECT name FROM chores WHERE household_id=? AND assignee_id=? ORDER BY id", (hid, uid))]
+    if my:
+        names = ", ".join(my[:3]) + ("…" if len(my) > 3 else "")
+        out.append({"id": f"chores-{len(my)}", "severity": "info", "icon": "🧽",
+                    "text": f"התור שלך: {names}", "tab": "chores"})
+
+    # קניות דחופות
+    urgent = db().execute(
+        "SELECT COUNT(*) c FROM shopping WHERE household_id=? AND done=0 AND urgent=1",
+        (hid,)).fetchone()["c"]
+    if urgent:
+        out.append({"id": f"shopping-urgent-{urgent}", "severity": "info", "icon": "🛒",
+                    "text": f"{urgent} פריטים דחופים מחכים ברשימת הקניות", "tab": "shopping"})
+
+    rank = {"critical": 0, "warn": 1, "info": 2}
+    out.sort(key=lambda n: rank[n["severity"]])
+    return out
+
+
 # ---------------------------------------------------------------- state
 
 @app.get("/api/state")
@@ -639,6 +732,7 @@ def state():
         shopping=shopping, bills=bills, chores=chores, chart=chart,
         total=totals.get(month, 0), prev_total=totals.get(prev_month, 0),
         personal=personal, bulletin=bulletin_notes(hid),
+        notifications=build_notifications(hid, g.user["id"]),
     )
 
 
