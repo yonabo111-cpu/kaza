@@ -5,6 +5,7 @@ Builds the app via the factory and serves it with waitress (falling back to
 Flask's built-in server). For production, prefer ``wsgi:app`` behind gunicorn.
 Run directly: ``python app.py``.
 """
+
 from __future__ import annotations
 
 import os

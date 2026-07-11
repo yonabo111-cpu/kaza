@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Shopping-list routes, including recipe lookup and bulk add."""
+
 from __future__ import annotations
 
 from flask import Blueprint, g, jsonify
@@ -82,7 +83,13 @@ def _record_shopping_expense(expense: dict, done_items: list) -> object | None:
     items = ", ".join(r["name"] for r in done_items)
     descr = "קניות: " + (items if len(items) <= 90 else items[:90] + "…")
     finance_repo.create_expense(
-        g.hid, date, descr, amount, category_id, payer_id, "equal",
+        g.hid,
+        date,
+        descr,
+        amount,
+        category_id,
+        payer_id,
+        "equal",
         finance_service.equal_shares(amount, member_ids, payer_id),
     )
     return None
@@ -97,7 +104,9 @@ def recipe_lookup():
         return err("נא לכתוב מה בא לכם לאכול (עד 80 תווים)")
     status, payload = recipes_service.resolve(dish_raw)
     if status == recipes_service.FOUND:
-        return jsonify(dish=payload["dish"], ingredients=payload["ingredients"], source=payload["source"])
+        return jsonify(
+            dish=payload["dish"], ingredients=payload["ingredients"], source=payload["source"]
+        )
     if status == recipes_service.INVALID:
         return err("נא לכתוב שם של מאכל")
     return err(f'לא מצאתי מתכון ל"{dish_raw}" — נסו שם מנה נפוץ יותר, או הוסיפו פריטים ידנית', 404)

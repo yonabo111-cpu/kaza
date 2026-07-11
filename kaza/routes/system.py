@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """System routes: JSON backup export, the SPA entry point, and a health check."""
+
 from __future__ import annotations
 
 from flask import Blueprint, current_app, g, jsonify

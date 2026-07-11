@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Small request/validation helpers shared across the route layer."""
+
 from __future__ import annotations
 
 import re
@@ -9,8 +10,8 @@ from flask import jsonify, request
 from werkzeug.wrappers import Response
 
 # Input-format validators, compiled once.
-MONTH_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")          # YYYY-MM
-DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")               # YYYY-MM-DD
+MONTH_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")  # YYYY-MM
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")  # YYYY-MM-DD
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 # Upper bound applied to every monetary amount, guarding against overflow/typos.

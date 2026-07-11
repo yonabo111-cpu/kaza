@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Money routes: shared expenses, settlements, and budget categories."""
+
 from __future__ import annotations
 
 from flask import Blueprint, g, jsonify
@@ -14,6 +15,7 @@ bp = Blueprint("finance", __name__)
 
 
 # ------------------------------------------------------------------- expenses
+
 
 @bp.post("/api/expenses")
 @household_required
@@ -85,6 +87,7 @@ def delete_expense(expense_id: int):
 
 # ---------------------------------------------------------------- settlements
 
+
 @bp.post("/api/settlements")
 @household_required
 def add_settlement():
@@ -116,6 +119,7 @@ def delete_settlement(settlement_id: int):
 
 
 # ------------------------------------------------------------------ categories
+
 
 @bp.post("/api/categories")
 @household_required

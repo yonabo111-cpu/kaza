@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Bulletin-board routes: list, post, and delete shared notes."""
+
 from __future__ import annotations
 
 from flask import Blueprint, g, jsonify

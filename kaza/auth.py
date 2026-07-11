@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Authentication: password hashing, the current user, and access decorators."""
+
 from __future__ import annotations
 
 from functools import wraps
@@ -45,6 +46,7 @@ def current_user() -> Row | None:
 
 def login_required(view: Callable) -> Callable:
     """Require a logged-in user; expose it as ``g.user``."""
+
     @wraps(view)
     def wrapper(*args, **kwargs):
         user = current_user()
@@ -58,6 +60,7 @@ def login_required(view: Callable) -> Callable:
 
 def household_required(view: Callable) -> Callable:
     """Require a logged-in user who belongs to a household (``g.hid``)."""
+
     @wraps(view)
     @login_required
     def wrapper(*args, **kwargs):

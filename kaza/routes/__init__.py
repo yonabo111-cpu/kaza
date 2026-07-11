@@ -5,6 +5,7 @@ Route handlers validate input, enforce access via the auth decorators, call
 the service/model layers, and shape the JSON response. They contain no SQL and
 no business rules of their own.
 """
+
 from __future__ import annotations
 
 from flask import Flask

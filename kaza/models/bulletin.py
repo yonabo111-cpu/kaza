@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Data access for the ``bulletin_board`` (shared sticky notes)."""
+
 from __future__ import annotations
 
 from kaza.db import Row, get_db
@@ -7,11 +8,15 @@ from kaza.db import Row, get_db
 
 def list_for(household_id: int) -> list[Row]:
     """Return the household's notes: pinned first, then newest to oldest."""
-    return get_db().execute(
-        "SELECT * FROM bulletin_board WHERE household_id=?"
-        " ORDER BY is_pinned DESC, created_at DESC, id DESC",
-        (household_id,),
-    ).fetchall()
+    return (
+        get_db()
+        .execute(
+            "SELECT * FROM bulletin_board WHERE household_id=?"
+            " ORDER BY is_pinned DESC, created_at DESC, id DESC",
+            (household_id,),
+        )
+        .fetchall()
+    )
 
 
 def create(household_id: int, user_id: int, content: str, is_pinned: bool) -> None:

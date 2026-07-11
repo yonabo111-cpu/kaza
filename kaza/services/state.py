@@ -6,6 +6,7 @@ categories with spend, expenses, balances and suggested transfers, settlements,
 shopping, bills, chores, a six-month trend, the caller's private ledger, the
 bulletin board, and derived notifications.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -53,7 +54,8 @@ def build_state(household_id: int, user: Row, month: str) -> dict[str, Any]:
     return {
         "user": {"id": user["id"], "name": user["name"], "email": user["email"]},
         "household": {
-            "id": household["id"], "name": household["name"],
+            "id": household["id"],
+            "name": household["name"],
             "invite_code": household["invite_code"],
         },
         "members": member_list,
@@ -79,8 +81,12 @@ def _build_categories(household_id: int, month: str) -> list[dict]:
     """Return categories with the amount spent this month."""
     spent = finance_repo.spent_by_category(household_id, month)
     return [
-        {"id": c["id"], "name": c["name"], "budget": c["budget"],
-         "spent": round(spent.get(c["id"], 0), 2)}
+        {
+            "id": c["id"],
+            "name": c["name"],
+            "budget": c["budget"],
+            "spent": round(spent.get(c["id"], 0), 2),
+        }
         for c in finance_repo.categories_for(household_id)
     ]
 
@@ -88,10 +94,17 @@ def _build_categories(household_id: int, month: str) -> list[dict]:
 def _build_expenses(household_id: int, month: str, cat_names: dict, names: dict) -> list[dict]:
     """Return this month's expenses with category and payer names resolved."""
     return [
-        {"id": e["id"], "date": e["date"], "descr": e["descr"], "amount": e["amount"],
-         "category_id": e["category_id"], "category": cat_names.get(e["category_id"], "—"),
-         "payer_id": e["payer_id"], "payer": names.get(e["payer_id"], "?"),
-         "split_type": e["split_type"]}
+        {
+            "id": e["id"],
+            "date": e["date"],
+            "descr": e["descr"],
+            "amount": e["amount"],
+            "category_id": e["category_id"],
+            "category": cat_names.get(e["category_id"], "—"),
+            "payer_id": e["payer_id"],
+            "payer": names.get(e["payer_id"], "?"),
+            "split_type": e["split_type"],
+        }
         for e in finance_repo.expenses_for_month(household_id, month)
     ]
 
@@ -99,8 +112,13 @@ def _build_expenses(household_id: int, month: str, cat_names: dict, names: dict)
 def _build_settlements(household_id: int, names: dict) -> list[dict]:
     """Return the most recent settlements with member names resolved."""
     return [
-        {"id": s["id"], "date": s["date"], "amount": s["amount"],
-         "from": names.get(s["from_id"], "?"), "to": names.get(s["to_id"], "?")}
+        {
+            "id": s["id"],
+            "date": s["date"],
+            "amount": s["amount"],
+            "from": names.get(s["from_id"], "?"),
+            "to": names.get(s["to_id"], "?"),
+        }
         for s in finance_repo.recent_settlements(household_id)
     ]
 
@@ -108,8 +126,14 @@ def _build_settlements(household_id: int, names: dict) -> list[dict]:
 def _build_shopping(household_id: int, names: dict) -> list[dict]:
     """Return the shopping list with the adder's name resolved."""
     return [
-        {"id": s["id"], "name": s["name"], "note": s["note"], "urgent": bool(s["urgent"]),
-         "done": bool(s["done"]), "added_by": names.get(s["added_by"], "?")}
+        {
+            "id": s["id"],
+            "name": s["name"],
+            "note": s["note"],
+            "urgent": bool(s["urgent"]),
+            "done": bool(s["done"]),
+            "added_by": names.get(s["added_by"], "?"),
+        }
         for s in shopping_repo.list_for(household_id)
     ]
 
@@ -120,23 +144,35 @@ def _build_bills(household_id: int, month: str, cat_names: dict, names: dict) ->
     bills = []
     for b in finance_repo.bills_for(household_id):
         payment = payments.get(b["id"])
-        bills.append({
-            "id": b["id"], "name": b["name"], "amount": b["amount"], "due_day": b["due_day"],
-            "category_id": b["category_id"], "category": cat_names.get(b["category_id"], "—"),
-            "paid": (
-                {"payer_id": payment["payer_id"], "payer": names.get(payment["payer_id"], "?")}
-                if payment else None
-            ),
-        })
+        bills.append(
+            {
+                "id": b["id"],
+                "name": b["name"],
+                "amount": b["amount"],
+                "due_day": b["due_day"],
+                "category_id": b["category_id"],
+                "category": cat_names.get(b["category_id"], "—"),
+                "paid": (
+                    {"payer_id": payment["payer_id"], "payer": names.get(payment["payer_id"], "?")}
+                    if payment
+                    else None
+                ),
+            }
+        )
     return bills
 
 
 def _build_chores(household_id: int, names: dict) -> list[dict]:
     """Return chores with the current assignee's name resolved."""
     return [
-        {"id": c["id"], "name": c["name"], "freq": c["freq"],
-         "assignee_id": c["assignee_id"], "assignee": names.get(c["assignee_id"], "?"),
-         "last_done": c["last_done"]}
+        {
+            "id": c["id"],
+            "name": c["name"],
+            "freq": c["freq"],
+            "assignee_id": c["assignee_id"],
+            "assignee": names.get(c["assignee_id"], "?"),
+            "last_done": c["last_done"],
+        }
         for c in chores_repo.list_for(household_id)
     ]
 
@@ -145,8 +181,13 @@ def _build_personal(household_id: int, user: Row, month: str, chart_months: list
     """Return the caller's private ledger view (never exposed to other members)."""
     user_id = user["id"]
     private_expenses = [
-        {"id": p["id"], "date": p["date"], "descr": p["descr"],
-         "amount": p["amount"], "category": p["category"]}
+        {
+            "id": p["id"],
+            "date": p["date"],
+            "descr": p["descr"],
+            "amount": p["amount"],
+            "category": p["category"],
+        }
         for p in private_repo.list_for_month(user_id, month)
     ]
     priv_by_month = private_repo.monthly_totals(user_id, chart_months[0])

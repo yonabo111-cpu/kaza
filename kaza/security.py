@@ -4,6 +4,7 @@
 Provides the same-origin (CSRF) guard for state-changing API calls, a set of
 conservative response security headers, and an in-memory login rate limiter.
 """
+
 from __future__ import annotations
 
 import time

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Structured application logging."""
+
 from __future__ import annotations
 
 import logging

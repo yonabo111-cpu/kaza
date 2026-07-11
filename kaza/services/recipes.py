@@ -5,6 +5,7 @@ Resolution order: the built-in Israeli cookbook (offline, instant) → the SQLit
 cache → an AI lookup (only when ``ANTHROPIC_API_KEY`` is configured). AI results
 are cached so each dish is resolved at most once.
 """
+
 from __future__ import annotations
 
 import json
@@ -37,10 +38,10 @@ RECIPE_SCHEMA: dict[str, Any] = {
 }
 
 RECIPE_PROMPT = (
-    "צור רשימת קניות עבור המנה: \"{dish}\".\n"
+    'צור רשימת קניות עבור המנה: "{dish}".\n'
     "כללים: מצרכים לבישול ביתי ל-2-3 סועדים, בעברית. אל תכלול מים, מלח, פלפל שחור "
-    "או דברים שיש בכל מטבח. בשדה note כתוב כמות קצרה (למשל: \"500 גרם\", \"2 יחידות\", "
-    "\"קופסה\"). בשדה dish כתוב את שם המנה המנוקה. "
+    'או דברים שיש בכל מטבח. בשדה note כתוב כמות קצרה (למשל: "500 גרם", "2 יחידות", '
+    '"קופסה"). בשדה dish כתוב את שם המנה המנוקה. '
     "אם הטקסט אינו שם של מאכל אמיתי — החזר ingredients ריק."
 )
 
@@ -76,12 +77,17 @@ def ai_recipe(dish: str) -> dict | None:
             return None
         data = json.loads(text)
         ingredients = [
-            {"name": str(i.get("name", "")).strip()[:80], "note": str(i.get("note", "")).strip()[:80]}
-            for i in data.get("ingredients", []) if str(i.get("name", "")).strip()
+            {
+                "name": str(i.get("name", "")).strip()[:80],
+                "note": str(i.get("note", "")).strip()[:80],
+            }
+            for i in data.get("ingredients", [])
+            if str(i.get("name", "")).strip()
         ][:25]
         if not ingredients:
             return None
-        return {"dish": (str(data.get("dish", "")).strip() or dish)[:80], "ingredients": ingredients}
+        dish_name = (str(data.get("dish", "")).strip() or dish)[:80]
+        return {"dish": dish_name, "ingredients": ingredients}
     except Exception:
         return None
 
@@ -95,7 +101,11 @@ def resolve(dish_raw: str) -> tuple[str, dict | None]:
     """
     builtin = resolve_builtin(dish_raw)
     if builtin:
-        return FOUND, {"dish": builtin["dish"], "ingredients": builtin["ingredients"], "source": "builtin"}
+        return FOUND, {
+            "dish": builtin["dish"],
+            "ingredients": builtin["ingredients"],
+            "source": "builtin",
+        }
 
     key = normalize_dish(dish_raw)
     if not key:
@@ -104,7 +114,11 @@ def resolve(dish_raw: str) -> tuple[str, dict | None]:
     cached = recipe_repo.get_cached(key)
     if cached:
         payload = json.loads(cached)
-        return FOUND, {"dish": payload["dish"], "ingredients": payload["ingredients"], "source": "cache"}
+        return FOUND, {
+            "dish": payload["dish"],
+            "ingredients": payload["ingredients"],
+            "source": "cache",
+        }
 
     ai = ai_recipe(key)
     if ai:

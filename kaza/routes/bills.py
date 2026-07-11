@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Recurring-bill routes: create, pay, reverse a payment, delete."""
+
 from __future__ import annotations
 
 from flask import Blueprint, g, jsonify
@@ -55,7 +56,13 @@ def pay_bill(bill_id: int):
         return err("החשבון כבר סומן כשולם לחודש הזה")
     date = f"{month}-{min(bill['due_day'], 28):02d}"
     expense_id = finance_repo.create_expense(
-        g.hid, date, bill["name"], bill["amount"], bill["category_id"], payer_id, "equal",
+        g.hid,
+        date,
+        bill["name"],
+        bill["amount"],
+        bill["category_id"],
+        payer_id,
+        "equal",
         finance_service.equal_shares(bill["amount"], member_ids, payer_id),
     )
     finance_repo.record_payment(bill_id, month, payer_id, expense_id)

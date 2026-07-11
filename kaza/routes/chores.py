@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Chore routes: add, mark done (rotating the turn), and delete."""
+
 from __future__ import annotations
 
 from flask import Blueprint, g, jsonify

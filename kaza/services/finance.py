@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Money business logic: split calculation, balances, and settlement suggestions."""
+
 from __future__ import annotations
 
 from typing import Iterable, Mapping, Sequence
@@ -43,8 +44,7 @@ def compute_balances(household_id: int) -> list[dict]:
             balance[row["to_id"]] -= row["amount"]
 
     return [
-        {"id": m["id"], "name": m["name"], "balance": round(balance[m["id"]], 2)}
-        for m in members
+        {"id": m["id"], "name": m["name"], "balance": round(balance[m["id"]], 2)} for m in members
     ]
 
 
@@ -65,11 +65,15 @@ def suggest_transfers(balances: Iterable[Mapping]) -> list[dict]:
     while i < len(debtors) and j < len(creditors):
         amount = round(min(-debtors[i]["balance"], creditors[j]["balance"]), 2)
         if amount > 0.01:
-            transfers.append({
-                "from_id": debtors[i]["id"], "from": debtors[i]["name"],
-                "to_id": creditors[j]["id"], "to": creditors[j]["name"],
-                "amount": amount,
-            })
+            transfers.append(
+                {
+                    "from_id": debtors[i]["id"],
+                    "from": debtors[i]["name"],
+                    "to_id": creditors[j]["id"],
+                    "to": creditors[j]["name"],
+                    "amount": amount,
+                }
+            )
         debtors[i]["balance"] = round(debtors[i]["balance"] + amount, 2)
         creditors[j]["balance"] = round(creditors[j]["balance"] - amount, 2)
         if debtors[i]["balance"] >= -0.01:

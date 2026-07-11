@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Account routes: register, login, logout, and the current-user summary."""
+
 from __future__ import annotations
 
 from flask import Blueprint, g, jsonify

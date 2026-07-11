@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Household routes: create a new apartment or join one with an invite code."""
+
 from __future__ import annotations
 
 from flask import Blueprint, g, jsonify

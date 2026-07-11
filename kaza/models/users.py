@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Data access for the ``users`` table."""
+
 from __future__ import annotations
 
 from kaza.db import Row, get_db

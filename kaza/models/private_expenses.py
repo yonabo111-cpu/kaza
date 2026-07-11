@@ -4,6 +4,7 @@
 Every query is scoped by ``user_id``; these rows must never surface to any
 other household member on any endpoint.
 """
+
 from __future__ import annotations
 
 from kaza.db import Row, get_db
@@ -27,11 +28,15 @@ def delete(private_id: int, user_id: int) -> int:
 
 def list_for_month(user_id: int, month: str) -> list[Row]:
     """Return the user's private expenses for ``month``, newest first."""
-    return get_db().execute(
-        "SELECT * FROM private_expenses WHERE user_id=? AND substr(date,1,7)=?"
-        " ORDER BY date DESC, id DESC",
-        (user_id, month),
-    ).fetchall()
+    return (
+        get_db()
+        .execute(
+            "SELECT * FROM private_expenses WHERE user_id=? AND substr(date,1,7)=?"
+            " ORDER BY date DESC, id DESC",
+            (user_id, month),
+        )
+        .fetchall()
+    )
 
 
 def monthly_totals(user_id: int, from_month: str) -> dict[str, float]:
@@ -48,11 +53,15 @@ def monthly_totals(user_id: int, from_month: str) -> dict[str, float]:
 
 def total_for_month(user_id: int, month: str) -> float:
     """Return the user's total private spend for a single ``month``."""
-    return get_db().execute(
-        "SELECT COALESCE(SUM(amount),0) s FROM private_expenses"
-        " WHERE user_id=? AND substr(date,1,7)=?",
-        (user_id, month),
-    ).fetchone()["s"]
+    return (
+        get_db()
+        .execute(
+            "SELECT COALESCE(SUM(amount),0) s FROM private_expenses"
+            " WHERE user_id=? AND substr(date,1,7)=?",
+            (user_id, month),
+        )
+        .fetchone()["s"]
+    )
 
 
 def distinct_categories(user_id: int) -> list[str]:

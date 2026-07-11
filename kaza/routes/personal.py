@@ -4,6 +4,7 @@
 Everything here is scoped to the logged-in user (``login_required``, not
 ``household_required``) so private data never touches household queries.
 """
+
 from __future__ import annotations
 
 from flask import Blueprint, g, jsonify

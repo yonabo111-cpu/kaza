@@ -6,6 +6,7 @@ together configuration, the database, security, logging, and the API
 blueprints. Layering runs strictly one way: ``routes → services → models →
 db``.
 """
+
 from __future__ import annotations
 
 import mimetypes
@@ -65,6 +66,7 @@ def _register_error_handlers(app: Flask) -> None:
         return exc
 
     if not app.debug and not app.testing:
+
         @app.errorhandler(Exception)
         def _server_error(exc):
             if isinstance(exc, HTTPException):

@@ -1,0 +1,35 @@
+[project]
+name = "kaza"
+version = "1.0.0"
+description = "Kaza — a household-management web app for roommates (expenses, budgets, shopping, bills, chores)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "flask>=3.0",
+    "waitress>=3.0",
+]
+
+[project.optional-dependencies]
+postgres = ["psycopg[binary]>=3.1"]
+ai = ["anthropic>=0.40"]
+dev = ["ruff>=0.6", "requests>=2.31"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+# Application code that must stay lint-clean.
+src = ["."]
+extend-exclude = ["data", "venv", ".venv"]
+
+[tool.ruff.lint]
+# A pragmatic baseline: pyflakes (F), pycodestyle (E/W), and import sorting (I).
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# Test scripts reconfigure stdout before importing (E402) and use long inline
+# Hebrew assertion strings that read better unwrapped (E501).
+"tests/*" = ["E402", "E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -7,6 +7,7 @@ against a single ``get_db()`` accessor. SQLite is the default; setting
 schema-compatibility completed in a later phase). The connection is stored on
 Flask's request-scoped ``g`` and committed once per successful request.
 """
+
 from __future__ import annotations
 
 import os

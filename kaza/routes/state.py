@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """The aggregate dashboard-state route."""
+
 from __future__ import annotations
 
 from flask import Blueprint, g, jsonify, request

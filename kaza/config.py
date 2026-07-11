@@ -6,6 +6,7 @@ variable. Everything the app needs to run — data directory, database URL,
 secret key, cookie policy — is resolved here so the rest of the code never
 reads ``os.environ`` directly.
 """
+
 from __future__ import annotations
 
 import os

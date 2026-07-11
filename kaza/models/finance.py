@@ -5,6 +5,7 @@ Covers categories, expenses (with their per-member shares), settlements, and
 recurring bills with their per-month payments. All reads and writes are scoped
 by ``household_id`` for tenant isolation.
 """
+
 from __future__ import annotations
 
 from typing import Mapping
@@ -13,11 +14,14 @@ from kaza.db import Row, get_db
 
 # ------------------------------------------------------------------ categories
 
+
 def categories_for(household_id: int) -> list[Row]:
     """Return the household's categories ordered by id."""
-    return get_db().execute(
-        "SELECT * FROM categories WHERE household_id=? ORDER BY id", (household_id,)
-    ).fetchall()
+    return (
+        get_db()
+        .execute("SELECT * FROM categories WHERE household_id=? ORDER BY id", (household_id,))
+        .fetchall()
+    )
 
 
 def create_category(household_id: int, name: str, budget: float) -> int:
@@ -46,21 +50,29 @@ def delete_category(category_id: int, household_id: int) -> None:
 
 def category_exists(category_id: int, household_id: int) -> bool:
     """True if the category belongs to the household."""
-    return get_db().execute(
-        "SELECT 1 FROM categories WHERE id=? AND household_id=?", (category_id, household_id)
-    ).fetchone() is not None
+    return (
+        get_db()
+        .execute(
+            "SELECT 1 FROM categories WHERE id=? AND household_id=?", (category_id, household_id)
+        )
+        .fetchone()
+        is not None
+    )
 
 
 def category_in_use(category_id: int, household_id: int) -> bool:
     """True if any expense or bill references this category."""
     db = get_db()
-    used = db.execute(
-        "SELECT 1 FROM expenses WHERE category_id=? AND household_id=? LIMIT 1",
-        (category_id, household_id),
-    ).fetchone() or db.execute(
-        "SELECT 1 FROM bills WHERE category_id=? AND household_id=? LIMIT 1",
-        (category_id, household_id),
-    ).fetchone()
+    used = (
+        db.execute(
+            "SELECT 1 FROM expenses WHERE category_id=? AND household_id=? LIMIT 1",
+            (category_id, household_id),
+        ).fetchone()
+        or db.execute(
+            "SELECT 1 FROM bills WHERE category_id=? AND household_id=? LIMIT 1",
+            (category_id, household_id),
+        ).fetchone()
+    )
     return used is not None
 
 
@@ -77,6 +89,7 @@ def spent_by_category(household_id: int, month: str) -> dict[int, float]:
 
 
 # -------------------------------------------------------------------- expenses
+
 
 def create_expense(
     household_id: int,
@@ -105,18 +118,20 @@ def create_expense(
 
 def get_expense(expense_id: int, household_id: int) -> Row | None:
     """Return the expense row (id only) if it belongs to the household."""
-    return get_db().execute(
-        "SELECT id FROM expenses WHERE id=? AND household_id=?", (expense_id, household_id)
-    ).fetchone()
+    return (
+        get_db()
+        .execute(
+            "SELECT id FROM expenses WHERE id=? AND household_id=?", (expense_id, household_id)
+        )
+        .fetchone()
+    )
 
 
 def delete_expense(expense_id: int, household_id: int) -> None:
     """Delete an expense and detach any bill payment that pointed at it."""
     db = get_db()
     db.execute("DELETE FROM bill_payments WHERE expense_id=?", (expense_id,))
-    db.execute(
-        "DELETE FROM expenses WHERE id=? AND household_id=?", (expense_id, household_id)
-    )
+    db.execute("DELETE FROM expenses WHERE id=? AND household_id=?", (expense_id, household_id))
 
 
 def delete_expense_only(expense_id: int, household_id: int) -> None:
@@ -128,28 +143,40 @@ def delete_expense_only(expense_id: int, household_id: int) -> None:
 
 def expenses_for_month(household_id: int, month: str) -> list[Row]:
     """Return the household's expenses for ``month``, newest first."""
-    return get_db().execute(
-        "SELECT * FROM expenses WHERE household_id=? AND substr(date,1,7)=?"
-        " ORDER BY date DESC, id DESC",
-        (household_id, month),
-    ).fetchall()
+    return (
+        get_db()
+        .execute(
+            "SELECT * FROM expenses WHERE household_id=? AND substr(date,1,7)=?"
+            " ORDER BY date DESC, id DESC",
+            (household_id, month),
+        )
+        .fetchall()
+    )
 
 
 def payer_totals(household_id: int) -> list[Row]:
     """Return ``[{p, s}]`` — total amount paid per payer, all time."""
-    return get_db().execute(
-        "SELECT payer_id p, SUM(amount) s FROM expenses WHERE household_id=? GROUP BY payer_id",
-        (household_id,),
-    ).fetchall()
+    return (
+        get_db()
+        .execute(
+            "SELECT payer_id p, SUM(amount) s FROM expenses WHERE household_id=? GROUP BY payer_id",
+            (household_id,),
+        )
+        .fetchall()
+    )
 
 
 def share_totals(household_id: int) -> list[Row]:
     """Return ``[{u, s}]`` — total share owed per member, all time."""
-    return get_db().execute(
-        "SELECT es.user_id u, SUM(es.share) s FROM expense_shares es"
-        " JOIN expenses e ON e.id=es.expense_id WHERE e.household_id=? GROUP BY es.user_id",
-        (household_id,),
-    ).fetchall()
+    return (
+        get_db()
+        .execute(
+            "SELECT es.user_id u, SUM(es.share) s FROM expense_shares es"
+            " JOIN expenses e ON e.id=es.expense_id WHERE e.household_id=? GROUP BY es.user_id",
+            (household_id,),
+        )
+        .fetchall()
+    )
 
 
 def monthly_totals(household_id: int, from_month: str) -> dict[str, float]:
@@ -179,15 +206,20 @@ def share_by_month(user_id: int, household_id: int, from_month: str) -> dict[str
 
 def share_total_for_month(user_id: int, household_id: int, month: str) -> float:
     """Return a user's total shared-expense share for a single ``month``."""
-    return get_db().execute(
-        "SELECT COALESCE(SUM(es.share),0) s FROM expense_shares es"
-        " JOIN expenses e ON e.id=es.expense_id"
-        " WHERE es.user_id=? AND e.household_id=? AND substr(e.date,1,7)=?",
-        (user_id, household_id, month),
-    ).fetchone()["s"]
+    return (
+        get_db()
+        .execute(
+            "SELECT COALESCE(SUM(es.share),0) s FROM expense_shares es"
+            " JOIN expenses e ON e.id=es.expense_id"
+            " WHERE es.user_id=? AND e.household_id=? AND substr(e.date,1,7)=?",
+            (user_id, household_id, month),
+        )
+        .fetchone()["s"]
+    )
 
 
 # ----------------------------------------------------------------- settlements
+
 
 def create_settlement(
     household_id: int, date: str, from_id: int, to_id: int, amount: float
@@ -208,26 +240,37 @@ def delete_settlement(settlement_id: int, household_id: int) -> None:
 
 def settlement_pairs(household_id: int) -> list[Row]:
     """Return ``[{from_id, to_id, amount}]`` for balance computation."""
-    return get_db().execute(
-        "SELECT from_id, to_id, amount FROM settlements WHERE household_id=?", (household_id,)
-    ).fetchall()
+    return (
+        get_db()
+        .execute(
+            "SELECT from_id, to_id, amount FROM settlements WHERE household_id=?", (household_id,)
+        )
+        .fetchall()
+    )
 
 
 def recent_settlements(household_id: int, limit: int = 8) -> list[Row]:
     """Return the most recent settlements, newest first."""
-    return get_db().execute(
-        "SELECT * FROM settlements WHERE household_id=? ORDER BY date DESC, id DESC LIMIT ?",
-        (household_id, limit),
-    ).fetchall()
+    return (
+        get_db()
+        .execute(
+            "SELECT * FROM settlements WHERE household_id=? ORDER BY date DESC, id DESC LIMIT ?",
+            (household_id, limit),
+        )
+        .fetchall()
+    )
 
 
 # ----------------------------------------------------------------------- bills
 
+
 def bills_for(household_id: int) -> list[Row]:
     """Return the household's bills ordered by due day."""
-    return get_db().execute(
-        "SELECT * FROM bills WHERE household_id=? ORDER BY due_day, id", (household_id,)
-    ).fetchall()
+    return (
+        get_db()
+        .execute("SELECT * FROM bills WHERE household_id=? ORDER BY due_day, id", (household_id,))
+        .fetchall()
+    )
 
 
 def create_bill(
@@ -242,23 +285,26 @@ def create_bill(
 
 def get_bill(bill_id: int, household_id: int) -> Row | None:
     """Return a bill row if it belongs to the household."""
-    return get_db().execute(
-        "SELECT * FROM bills WHERE id=? AND household_id=?", (bill_id, household_id)
-    ).fetchone()
+    return (
+        get_db()
+        .execute("SELECT * FROM bills WHERE id=? AND household_id=?", (bill_id, household_id))
+        .fetchone()
+    )
 
 
 def delete_bill(bill_id: int, household_id: int) -> None:
     """Delete a recurring bill (its recorded expenses remain)."""
-    get_db().execute(
-        "DELETE FROM bills WHERE id=? AND household_id=?", (bill_id, household_id)
-    )
+    get_db().execute("DELETE FROM bills WHERE id=? AND household_id=?", (bill_id, household_id))
 
 
 def payment_exists(bill_id: int, month: str) -> bool:
     """True if the bill is already marked paid for ``month``."""
-    return get_db().execute(
-        "SELECT 1 FROM bill_payments WHERE bill_id=? AND month=?", (bill_id, month)
-    ).fetchone() is not None
+    return (
+        get_db()
+        .execute("SELECT 1 FROM bill_payments WHERE bill_id=? AND month=?", (bill_id, month))
+        .fetchone()
+        is not None
+    )
 
 
 def record_payment(bill_id: int, month: str, payer_id: int, expense_id: int) -> None:
@@ -271,18 +317,20 @@ def record_payment(bill_id: int, month: str, payer_id: int, expense_id: int) -> 
 
 def get_payment(bill_id: int, month: str, household_id: int) -> Row | None:
     """Return a bill payment row (joined to the household) for reversal."""
-    return get_db().execute(
-        "SELECT bp.* FROM bill_payments bp JOIN bills b ON b.id=bp.bill_id"
-        " WHERE bp.bill_id=? AND bp.month=? AND b.household_id=?",
-        (bill_id, month, household_id),
-    ).fetchone()
+    return (
+        get_db()
+        .execute(
+            "SELECT bp.* FROM bill_payments bp JOIN bills b ON b.id=bp.bill_id"
+            " WHERE bp.bill_id=? AND bp.month=? AND b.household_id=?",
+            (bill_id, month, household_id),
+        )
+        .fetchone()
+    )
 
 
 def delete_payment(bill_id: int, month: str) -> None:
     """Remove a bill's payment record for ``month``."""
-    get_db().execute(
-        "DELETE FROM bill_payments WHERE bill_id=? AND month=?", (bill_id, month)
-    )
+    get_db().execute("DELETE FROM bill_payments WHERE bill_id=? AND month=?", (bill_id, month))
 
 
 def payments_for_month(household_id: int, month: str) -> dict[int, Row]:
