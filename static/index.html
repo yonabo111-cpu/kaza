@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>קאזה · Kaza</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="logo.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2a78d6">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="קאזה">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -318,10 +324,10 @@
     padding:30px 28px; width:100%; max-width:410px; box-shadow:var(--shadow-pop);
   }
   .logo-dot{
-    width:58px; height:58px; border-radius:18px; background:var(--brand); color:#fff;
-    display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 12px;
-    box-shadow:0 6px 20px color-mix(in srgb, var(--accent) 40%, transparent);
+    width:64px; height:64px; margin:0 auto 12px;
+    border-radius:18px; box-shadow:0 6px 20px color-mix(in srgb, var(--accent) 40%, transparent);
   }
+  .logo-dot svg{width:100%; height:100%; display:block;}
   .auth-card h1{font-size:23px; font-weight:700; text-align:center; letter-spacing:-.3px;}
   .auth-card .tagline{text-align:center; color:var(--ink2); font-size:13.5px; margin:4px 0 20px;}
   .auth-tabs{display:flex; gap:0; margin-bottom:18px; background:var(--bg); border-radius:12px; padding:4px;}
@@ -388,7 +394,16 @@
 <div class="screen" id="screen-auth">
   <div class="center-wrap">
     <div class="auth-card">
-      <div class="logo-dot">🏠</div>
+      <div class="logo-dot">
+        <svg viewBox="0 0 128 128" role="img" aria-label="קאזה">
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#2a78d6"/><stop offset="1" stop-color="#4a3aa7"/></linearGradient></defs>
+          <rect width="128" height="128" rx="30" fill="url(#lg)"/>
+          <g fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M30 58 L64 28 L98 58"/><path d="M50 56 L50 100"/><path d="M80 56 L54 78 L80 100"/>
+          </g>
+        </svg>
+      </div>
       <h1>קאזה</h1>
       <div class="tagline">הבית המשותף שלכם, מסודר — תקציב, קניות, חשבונות ומטלות</div>
       <div class="auth-tabs">
@@ -416,7 +431,7 @@
 <div class="screen" id="screen-setup">
   <div class="center-wrap">
     <div class="auth-card">
-      <div class="logo-dot">🔑</div>
+      <div class="logo-dot" style="background:var(--brand); display:flex; align-items:center; justify-content:center; font-size:30px">🔑</div>
       <h1>כמעט שם</h1>
       <div class="tagline" id="setupHello"></div>
       <form onsubmit="createHousehold(event)">

@@ -5,6 +5,7 @@ Flask + SQLite. משתמשים, משקי־בית (דירות) עם קוד הזמ
 הוצאות עם חלוקה בין שותפים, תקציבים, קניות, חשבונות ומטלות.
 """
 import json
+import mimetypes
 import os
 import re
 import secrets
@@ -12,6 +13,10 @@ import sqlite3
 import time
 from datetime import date, timedelta
 from functools import wraps
+
+# ודא ש-.webmanifest ו-.svg מוגשים עם ה-Content-Type הנכון בכל מערכת
+mimetypes.add_type("application/manifest+json", ".webmanifest")
+mimetypes.add_type("image/svg+xml", ".svg")
 
 from flask import Flask, g, jsonify, request, session
 from werkzeug.security import check_password_hash, generate_password_hash

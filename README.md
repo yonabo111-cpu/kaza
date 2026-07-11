@@ -1,4 +1,6 @@
-# 🏠 Kaza (קאזה)
+<img src="static/logo.svg" alt="Kaza" width="88" align="right">
+
+# Kaza (קאזה)
 
 **Kaza** — like *casa*, but with roommates.
 

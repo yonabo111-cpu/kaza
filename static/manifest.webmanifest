@@ -1,0 +1,15 @@
+{
+  "name": "קאזה — הבית המשותף שלכם",
+  "short_name": "קאזה",
+  "description": "תקציב, קניות, חשבונות ומטלות לשותפים לדירה",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0e0f11",
+  "theme_color": "#2a78d6",
+  "icons": [
+    { "src": "logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
