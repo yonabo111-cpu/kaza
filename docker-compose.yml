@@ -1,0 +1,23 @@
+# Kaza — local container run.
+#   docker compose up --build   →   http://localhost:5050
+services:
+  kaza:
+    build: .
+    ports:
+      - "5050:8000"
+    environment:
+      # Use 'development' for local HTTP testing; 'production' behind HTTPS
+      # (production issues Secure cookies that only travel over HTTPS).
+      KAZA_ENV: ${KAZA_ENV:-development}
+      # Optional overrides — see .env.example.
+      SECRET_KEY: ${SECRET_KEY:-}
+      DATABASE_URL: ${DATABASE_URL:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      # Persist the SQLite database and session secret across restarts.
+      - kaza-data:/data
+    restart: unless-stopped
+
+volumes:
+  kaza-data:

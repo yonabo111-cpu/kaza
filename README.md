@@ -2,16 +2,20 @@
 
 # Kaza (קאזה)
 
+[![CI](https://github.com/yonabo111-cpu/kaza/actions/workflows/ci.yml/badge.svg)](https://github.com/yonabo111-cpu/kaza/actions/workflows/ci.yml)
+
 **Kaza** — like *casa*, but with roommates.
 
 A full-stack web app for roommates sharing an apartment: track shared expenses with
 automatic settlement ("who owes whom"), monthly budgets, a shared shopping list,
-recurring bills, chore rotation — and a **private ledger** each member sees only
+recipe → shopping-list resolution, recurring bills, chore rotation, a bulletin
+board, in-app notifications — and a **private ledger** each member sees only
 themselves.
 
-Built with Flask + SQLite on the backend and a single-file vanilla-JS frontend.
-The UI is in **Hebrew (RTL)**, designed mobile-first with a bottom navigation bar,
-dark-mode support, and a friendly, modern look.
+Built with **Flask** (a modular application-factory backend) and **SQLite /
+PostgreSQL**, served to a single-file vanilla-JS frontend. The UI is in **Hebrew
+(RTL)**, designed mobile-first with a bottom navigation bar, dark-mode support,
+and a friendly, modern look.
 
 ## Features
 
@@ -53,11 +57,30 @@ dark-mode support, and a friendly, modern look.
 
 ## Architecture
 
-| Layer    | Tech                                   | File                |
-|----------|----------------------------------------|---------------------|
-| Backend  | Python / Flask, REST API               | `app.py`            |
-| Database | SQLite (auto-created, WAL mode)        | `data/app.db`       |
-| Frontend | Single-file HTML/CSS/JS, no framework  | `static/index.html` |
+The backend is a layered Flask package built with the application-factory
+pattern; dependencies flow one way, `routes → services → models → db`:
+
+```
+kaza/
+├── __init__.py       # create_app() application factory
+├── config.py         # env-based config (development / production / testing)
+├── db.py             # connection factory (SQLite / PostgreSQL), schema, indexes
+├── security.py       # CSRF/origin guard, security headers, login rate limiter
+├── auth.py           # password hashing, sessions, access decorators
+├── utils.py          # request helpers & validators
+├── models/           # data-access repositories (parameterised SQL only)
+├── services/         # business logic (splits, balances, notifications, state)
+└── routes/           # thin blueprints, one per domain
+static/index.html     # single-file vanilla-JS frontend
+app.py / wsgi.py      # dev runner / WSGI entry point
+```
+
+| Layer    | Tech                                      |
+|----------|-------------------------------------------|
+| Backend  | Python 3.10+ / Flask, blueprint REST API  |
+| Database | SQLite (default) or PostgreSQL via `DATABASE_URL` |
+| Frontend | Single-file HTML/CSS/JS, no framework      |
+| Tooling  | ruff (lint + format), GitHub Actions CI, Docker |
 
 Design decisions worth noting:
 
@@ -69,8 +92,11 @@ Design decisions worth noting:
   query filters by the session user's id — they cannot leak into shared lists,
   totals, budgets or exports of other members.
 - **Security basics** — password hashing (Werkzeug), signed session cookies
-  (HttpOnly, SameSite=Lax), login rate-limiting, Origin check on state-changing
-  requests, per-household data isolation enforced in every query.
+  (HttpOnly, SameSite=Lax, Secure in production), login rate-limiting, an Origin
+  check on state-changing requests, conservative security headers, and
+  per-household data isolation enforced in every query.
+- **Health & operations** — a `/healthz` endpoint (used by the Docker
+  healthcheck), structured logging, and JSON error handlers for API routes.
 
 ## Quick start
 
@@ -84,13 +110,18 @@ The server listens on `0.0.0.0`, so roommates on the same Wi-Fi can use
 
 ### Configuration (environment variables)
 
+All configuration is via environment variables — see [`.env.example`](.env.example).
+
 | Variable            | Default           | Purpose                                  |
 |---------------------|-------------------|------------------------------------------|
+| `KAZA_ENV`          | `development`     | Config profile: `development` / `production` / `testing` |
 | `PORT`              | `5050`            | HTTP port                                 |
 | `DATA_DIR`          | `./data`          | Where the SQLite DB and secret key live   |
-| `SECRET_KEY`        | auto-generated    | Session signing key (persisted to a file) |
+| `SECRET_KEY`        | auto-generated    | Session signing key (set explicitly in production) |
+| `DATABASE_URL`      | unset (SQLite)    | PostgreSQL connection URL to switch drivers |
 | `ANTHROPIC_API_KEY` | unset             | Optional — enables AI recipe lookup for dishes not in the built-in cookbook ([get a key](https://console.anthropic.com)) |
 | `CLAUDE_MODEL`      | `claude-opus-4-8` | Model for recipe lookup (e.g. `claude-haiku-4-5` for cheaper/faster responses) |
+| `LOG_LEVEL`         | `INFO`            | Logging verbosity                         |
 
 ## Tests
 
@@ -100,28 +131,42 @@ balances and settlement, bills, shopping, chores, cross-household isolation, the
 privacy guarantees of the personal ledger, recipe → shopping-list resolution,
 bulletin-board permissions, and notification derivation.
 
+Run everything with one command — it boots the app on a throwaway database for
+each suite and tears it down afterwards (this is exactly what CI runs):
+
 ```bash
-# start the server against a throwaway database first:
-DATA_DIR=/tmp/home-test python app.py
-# then, in another terminal:
-pip install requests
-python tests/api_test.py       # 52 checks
-python tests/personal_test.py  # 26 checks
-python tests/recipe_test.py    # 18 checks
-python tests/bulletin_test.py  # 17 checks
-python tests/notif_test.py     # 16 checks
+pip install -r requirements-dev.txt
+python tests/run_all.py
 ```
 
-> Each suite registers `testa@example.com`, so run them against a **fresh**
-> `DATA_DIR` one at a time (wipe the DB between suites), not all three against
-> one database.
+Each suite can also be run individually against a **fresh** `DATA_DIR` (they
+register their own test users, so never point them at your real database):
 
-> The tests register their own users on the running server — point `DATA_DIR`
-> at a disposable location, not your real database.
+```bash
+DATA_DIR=/tmp/kaza-test python app.py          # in one terminal
+API_BASE=http://localhost:5050/api python tests/api_test.py   # in another
+```
 
-## Deploying (free)
+### Linting & formatting
 
-**PythonAnywhere** (recommended first deploy — persistent disk, so SQLite survives):
+```bash
+ruff check .          # lint
+ruff format --check . # formatting
+```
+
+## Deploying
+
+### Docker (any container host)
+
+```bash
+docker compose up --build      # → http://localhost:5050
+```
+
+The image serves the app with gunicorn and persists the SQLite database in a
+named volume. For a real deployment set `KAZA_ENV=production` (behind HTTPS) and
+a `SECRET_KEY`; see [`.env.example`](.env.example).
+
+### PythonAnywhere (free, persistent disk — SQLite survives)
 
 1. Sign up at <https://www.pythonanywhere.com> (free *Beginner* plan).
 2. Upload this folder to `/home/<you>/home-app` (zip + `unzip` in a Bash console).
@@ -132,18 +177,22 @@ python tests/notif_test.py     # 16 checks
    ```python
    import sys
    sys.path.insert(0, "/home/<you>/home-app")
-   from app import app as application
+   from wsgi import app as application
    ```
 
 6. **Reload** — the app is live at `https://<you>.pythonanywhere.com`. Share the
    link and your invite code with your roommates.
 
-**Render / Railway**: a `Procfile` (gunicorn) is included; note that on free tiers
-the filesystem is ephemeral — attach a persistent disk or migrate to Postgres so
-data survives redeploys.
+### Render / Railway / Fly
+
+A `Procfile` (`gunicorn wsgi:app`) and a `Dockerfile` are included. On free tiers
+the filesystem is ephemeral — attach a persistent disk or point `DATABASE_URL`
+at a managed PostgreSQL instance so data survives redeploys.
 
 ## Roadmap
 
+- AI insights: monthly spend analysis, savings tips, shared-buy suggestions
+- Content Security Policy and CSRF tokens
+- Frontend split into modules + accessibility pass
 - Password reset via email, email verification
 - Monthly report export
-- Postgres option for ephemeral-disk hosts
