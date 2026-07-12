@@ -74,8 +74,9 @@ expense → settle up → recipe to shopping list).
   join with an invite code. Any number of roommates.
 - **Shared expenses** — every expense records who paid and how it splits:
   *equal*, *personal* (no split), or *custom* per-member shares.
-- **Settle-up** — running net balance per member, plus a suggested *minimal* set
-  of transfers to clear all debts (greedy largest-debtor → largest-creditor).
+- **Settle-up** — net balance per member, month-anchored with carry-over
+  (unsettled debt rolls into the next month), plus a suggested *minimal* set of
+  transfers to clear it (greedy largest-debtor → largest-creditor).
 - **Budgets** — a monthly cap per category with progress meters and overspend
   alerts.
 - **Shopping list** — shared, with urgent flags; checked-off items convert into a
@@ -91,8 +92,10 @@ expense → settle up → recipe to shopping list).
 - **Private ledger 🔒** — per-member expenses in a separate table, returned
   **only to their owner** on every endpoint, with a personal budget measured
   against your *true* monthly spend (your share of shared + your private).
-- **Dashboard** — month totals vs. last month, budget meters, a 6-month trend
-  chart, upcoming bills, and urgent shopping.
+- **Dashboard** — **your own** monthly spend vs. last month (your share of shared
+  expenses + your private ones, not the household total), budget meters, your
+  6-month trend, upcoming bills, and urgent shopping. The expenses tab likewise
+  shows only what involves you, priced at your share.
 - **In-app notifications 🔔** — overdue/upcoming bills, budget overruns, open
   debts, your chore turn, urgent shopping. *Derived from current state* every
   request — no table, no scheduler — so they appear and clear on their own.

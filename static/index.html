@@ -517,7 +517,7 @@
         <div id="dashMeters"></div>
       </div>
       <div class="card">
-        <h2>📊 הוצאות — 6 חודשים אחרונים</h2>
+        <h2>📊 ההוצאות שלי — 6 חודשים אחרונים</h2>
         <div class="chart" id="dashChart"></div>
         <div class="chart-x" id="dashChartX"></div>
       </div>
@@ -556,7 +556,7 @@
     </div>
 
     <div class="card">
-      <h2>🤝 התחשבנות <span class="note">מאזן כולל מאז ומעולם, לא רק החודש</span></h2>
+      <h2>🤝 התחשבנות <span class="note">מאזן עד סוף החודש המוצג · חוב שלא נסגר מתגלגל קדימה</span></h2>
       <div id="balancesBox"></div>
       <div id="transfersBox"></div>
       <div id="settleHistory"></div>
@@ -1263,10 +1263,13 @@ function meterHTML(nm, spent, budget){
 }
 
 function renderDash(){
-  const total = S.total, prev = S.prev_total;
+  // "My spend" — my share of shared expenses + my private ones — not the household total.
+  const P = S.personal;
+  const myTotal = Math.round((P.private_total + P.share_total)*100)/100;
+  const myPrev = P.chart.length>1 ? P.chart[P.chart.length-2].total : 0;
   let deltaHTML = `<div class="delta">אין נתונים לחודש קודם</div>`;
-  if(prev>0){
-    const d = total-prev, pct = Math.round(Math.abs(d)/prev*100);
+  if(myPrev>0){
+    const d = myTotal-myPrev, pct = Math.round(Math.abs(d)/myPrev*100);
     deltaHTML = d>=0
       ? `<div class="delta up-bad">▲ ${pct}%+ מהחודש הקודם</div>`
       : `<div class="delta down-good">▼ ${pct}%- מהחודש הקודם</div>`;
@@ -1283,8 +1286,8 @@ function renderDash(){
   const totalBudget = S.categories.reduce((s,c)=>s+c.budget,0);
 
   document.getElementById("dashTiles").innerHTML = `
-    <div class="tile"><div class="label">💸 הוצאות ${monthLabel(viewMonth)}</div>
-      <div class="value">${fmt(total)}</div>${deltaHTML}</div>
+    <div class="tile"><div class="label">💸 ההוצאות שלי · ${monthLabel(viewMonth)}</div>
+      <div class="value">${fmt(myTotal)}</div>${deltaHTML}</div>
     <div class="tile"><div class="label">🤝 המאזן שלי</div>${balHTML}</div>
     <div class="tile"><div class="label">🛒 רשימת קניות</div>
       <div class="value">${openItems.length}</div>
@@ -1300,15 +1303,16 @@ function renderDash(){
     rows.length ? rows.map(x=>meterHTML(`${catEmoji(x.c.name)} ${esc(x.c.name)}`, x.c.spent, x.c.budget)).join("")
                 : `<div class="empty"><span class="e">🎯</span>אין קטגוריות עם תקציב — מגדירים בלשונית "תקציבים"</div>`;
 
-  const max = Math.max(...S.chart.map(c=>c.total), 1);
-  document.getElementById("dashChart").innerHTML = S.chart.map(c=>{
+  const myChart = P.chart;
+  const max = Math.max(...myChart.map(c=>c.total), 1);
+  document.getElementById("dashChart").innerHTML = myChart.map(c=>{
     const isCur = c.month===viewMonth;
     const cap = (isCur || c.total===max) && c.total>0 ? `<span class="cap">${Math.round(c.total).toLocaleString("he-IL")}</span>` : "";
     return `<div class="col ${isCur?'':'dim'}">${cap}<div class="fill" style="height:${Math.round(c.total/max*100)}%"></div>
       <span class="tip">${monthLabel(c.month)} · ${fmt(c.total)}</span></div>`;
   }).join("");
   document.getElementById("dashChartX").innerHTML =
-    S.chart.map(c=>`<span>${new Date(c.month+"-01T00:00").toLocaleDateString("he-IL",{month:"short"})}</span>`).join("");
+    myChart.map(c=>`<span>${new Date(c.month+"-01T00:00").toLocaleDateString("he-IL",{month:"short"})}</span>`).join("");
 
   const unpaid = S.bills.filter(b=>!b.paid);
   const isCurMonth = viewMonth===localToday().slice(0,7);
@@ -1333,23 +1337,30 @@ function renderDash(){
 }
 
 function renderExpenses(){
-  document.getElementById("expMonthNote").textContent = "· " + monthLabel(viewMonth);
-  document.getElementById("expTable").innerHTML = S.expenses.map(e=>`<tr>
+  // Only the expenses that are "mine" — ones I paid or hold a share in — and each
+  // row shows my_share (what it cost me), not the household total.
+  const mine = S.expenses.filter(e=>e.mine);
+  const myTotal = mine.reduce((s,e)=>s+e.my_share, 0);
+  document.getElementById("expMonthNote").textContent =
+    `· ${monthLabel(viewMonth)} · סה״כ שלי ${fmt(myTotal)}`;
+  document.getElementById("expTable").innerHTML = mine.map(e=>`<tr>
     <td class="num">${heDate(e.date)}</td>
-    <td>${esc(e.descr)}</td>
+    <td>${esc(e.descr)}${e.my_share!==e.amount ? `<div class="meta">חלקי מתוך ${fmt(e.amount)}</div>` : ""}</td>
     <td><span class="badge">${catEmoji(e.category)} ${esc(e.category)}</span></td>
-    <td class="num"><b>${fmt(e.amount)}</b></td>
+    <td class="num"><b>${fmt(e.my_share)}</b></td>
     <td>${who(e.payer_id)}</td>
     <td style="font-size:12.5px;color:var(--ink2)">${splitLabel(e.split_type)}</td>
     <td><button class="mini-btn danger" onclick="deleteExpense(${e.id})">✕</button></td>
   </tr>`).join("");
-  document.getElementById("expEmpty").style.display = S.expenses.length ? "none" : "";
+  document.getElementById("expEmpty").style.display = mine.length ? "none" : "";
 
   document.getElementById("balancesBox").innerHTML = S.balances.map(b=>{
     const cls = b.balance>0.01 ? "amount-pos" : b.balance<-0.01 ? "amount-neg" : "";
     const txt = b.balance>0.01 ? `מגיע לו/ה ${fmt(b.balance)}`
               : b.balance<-0.01 ? `חייב/ת ${fmt(-b.balance)}` : "מאוזן ✓";
-    return `<div class="list-item"><div class="grow">${who(b.id, "")}</div><span class="${cls}" style="font-size:13.5px">${txt}</span></div>`;
+    const carry = Math.abs(b.carryover) > 0.01
+      ? `<span class="meta"> · כולל ${fmt(Math.abs(b.carryover))} מחודשים קודמים</span>` : "";
+    return `<div class="list-item"><div class="grow">${who(b.id, "")}</div><span class="${cls}" style="font-size:13.5px">${txt}${carry}</span></div>`;
   }).join("");
 
   document.getElementById("transfersBox").innerHTML = S.transfers.length

@@ -39,7 +39,7 @@ def build_notifications(household_id: int, user_id: int) -> list[dict]:
     _bill_notifications(household_id, today, month, out)
     _budget_notifications(household_id, month, out)
     _personal_budget_notifications(household_id, user_id, month, out)
-    _debt_notification(household_id, user_id, out)
+    _debt_notification(household_id, user_id, month, out)
     _chore_notification(household_id, user_id, out)
     _shopping_notification(household_id, out)
 
@@ -139,9 +139,9 @@ def _personal_budget_notifications(
         )
 
 
-def _debt_notification(household_id: int, user_id: int, out: list[dict]) -> None:
-    """Flag an open balance the user owes the household."""
-    balances = finance_service.compute_balances(household_id)
+def _debt_notification(household_id: int, user_id: int, month: str, out: list[dict]) -> None:
+    """Flag an open balance the user owes the household (as of this month)."""
+    balances = finance_service.compute_balances(household_id, month)
     mine = next((b["balance"] for b in balances if b["id"] == user_id), 0)
     if mine < -0.01:
         out.append(

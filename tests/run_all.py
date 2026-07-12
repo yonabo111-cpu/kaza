@@ -30,6 +30,7 @@ SUITES = [
     "bulletin_test.py",
     "notif_test.py",
     "security_test.py",
+    "monthly_test.py",
 ]
 
 

@@ -154,29 +154,44 @@ def expenses_for_month(household_id: int, month: str) -> list[Row]:
     )
 
 
-def payer_totals(household_id: int) -> list[Row]:
-    """Return ``[{p, s}]`` — total amount paid per payer, all time."""
+def payer_totals(household_id: int, through_month: str) -> list[Row]:
+    """Return ``[{p, s}]`` — amount paid per payer through the end of ``through_month``."""
     return (
         get_db()
         .execute(
-            "SELECT payer_id p, SUM(amount) s FROM expenses WHERE household_id=? GROUP BY payer_id",
-            (household_id,),
+            "SELECT payer_id p, SUM(amount) s FROM expenses"
+            " WHERE household_id=? AND substr(date,1,7)<=? GROUP BY payer_id",
+            (household_id, through_month),
         )
         .fetchall()
     )
 
 
-def share_totals(household_id: int) -> list[Row]:
-    """Return ``[{u, s}]`` — total share owed per member, all time."""
+def share_totals(household_id: int, through_month: str) -> list[Row]:
+    """Return ``[{u, s}]`` — share owed per member through the end of ``through_month``."""
     return (
         get_db()
         .execute(
             "SELECT es.user_id u, SUM(es.share) s FROM expense_shares es"
-            " JOIN expenses e ON e.id=es.expense_id WHERE e.household_id=? GROUP BY es.user_id",
-            (household_id,),
+            " JOIN expenses e ON e.id=es.expense_id"
+            " WHERE e.household_id=? AND substr(e.date,1,7)<=? GROUP BY es.user_id",
+            (household_id, through_month),
         )
         .fetchall()
     )
+
+
+def user_shares_for_expenses(user_id: int, household_id: int, month: str) -> dict[int, float]:
+    """Return ``{expense_id: share}`` for one user's shares in a month's expenses."""
+    return {
+        r["expense_id"]: r["share"]
+        for r in get_db().execute(
+            "SELECT es.expense_id, es.share FROM expense_shares es"
+            " JOIN expenses e ON e.id=es.expense_id"
+            " WHERE es.user_id=? AND e.household_id=? AND substr(e.date,1,7)=?",
+            (user_id, household_id, month),
+        )
+    }
 
 
 def monthly_totals(household_id: int, from_month: str) -> dict[str, float]:
@@ -238,12 +253,14 @@ def delete_settlement(settlement_id: int, household_id: int) -> None:
     )
 
 
-def settlement_pairs(household_id: int) -> list[Row]:
-    """Return ``[{from_id, to_id, amount}]`` for balance computation."""
+def settlement_pairs(household_id: int, through_month: str) -> list[Row]:
+    """Return ``[{from_id, to_id, amount}]`` through the end of ``through_month``."""
     return (
         get_db()
         .execute(
-            "SELECT from_id, to_id, amount FROM settlements WHERE household_id=?", (household_id,)
+            "SELECT from_id, to_id, amount FROM settlements"
+            " WHERE household_id=? AND substr(date,1,7)<=?",
+            (household_id, through_month),
         )
         .fetchall()
     )
