@@ -8,7 +8,7 @@ from flask import Blueprint, g, jsonify
 from kaza.auth import household_required
 from kaza.models import bulletin as bulletin_repo
 from kaza.services import households as households_service
-from kaza.utils import body, err
+from kaza.utils import body, clean_text, err
 
 bp = Blueprint("bulletin", __name__)
 
@@ -25,7 +25,7 @@ def get_bulletin():
 def add_bulletin_note():
     """Post a note to the shared board."""
     d = body()
-    content = (d.get("content") or "").strip()
+    content = clean_text(d.get("content"))
     if not content or len(content) > 300:
         return err("נא לכתוב תוכן למודעה (עד 300 תווים)")
     bulletin_repo.create(g.hid, g.user["id"], content, bool(d.get("is_pinned")))

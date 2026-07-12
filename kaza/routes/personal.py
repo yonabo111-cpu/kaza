@@ -12,7 +12,7 @@ from flask import Blueprint, g, jsonify
 from kaza.auth import login_required
 from kaza.models import private_expenses as private_repo
 from kaza.models import users as users_repo
-from kaza.utils import DATE_RE, body, err, valid_amount
+from kaza.utils import DATE_RE, body, clean_text, err, valid_amount
 
 bp = Blueprint("personal", __name__)
 
@@ -22,9 +22,9 @@ bp = Blueprint("personal", __name__)
 def add_private_expense():
     """Add a private expense visible only to the current user."""
     d = body()
-    descr = (d.get("descr") or "").strip()
+    descr = clean_text(d.get("descr"))
     date = d.get("date") or ""
-    category = (d.get("category") or "").strip()[:40]
+    category = clean_text(d.get("category"))[:40]
     try:
         amount = round(float(d.get("amount")), 2)
     except (TypeError, ValueError):

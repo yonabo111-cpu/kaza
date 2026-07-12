@@ -91,10 +91,14 @@ Design decisions worth noting:
 - **Privacy by construction.** Private expenses live in their own table and every
   query filters by the session user's id — they cannot leak into shared lists,
   totals, budgets or exports of other members.
-- **Security basics** — password hashing (Werkzeug), signed session cookies
-  (HttpOnly, SameSite=Lax, Secure in production), login rate-limiting, an Origin
-  check on state-changing requests, conservative security headers, and
-  per-household data isolation enforced in every query.
+- **Defense in depth** — password hashing (Werkzeug), signed session cookies
+  (HttpOnly, SameSite=Lax, Secure in production), three independent CSRF layers
+  (Origin check, `Sec-Fetch-Site`, JSON-only POST), a Content-Security-Policy
+  plus a full set of security headers (HSTS in production), login rate-limiting
+  per email *and* per IP, control-character input sanitisation, and
+  per-household data isolation enforced in every query. The full model is
+  documented in [SECURITY.md](SECURITY.md) and asserted end-to-end by a
+  dedicated test suite.
 - **Health & operations** — a `/healthz` endpoint (used by the Docker
   healthcheck), structured logging, and JSON error handlers for API routes.
 
@@ -125,11 +129,13 @@ All configuration is via environment variables — see [`.env.example`](.env.exa
 
 ## Tests
 
-An end-to-end API test suite (129 checks) lives in [`tests/`](tests): it simulates
-two roommates through every flow — registration, invite codes, all split types,
-balances and settlement, bills, shopping, chores, cross-household isolation, the
-privacy guarantees of the personal ledger, recipe → shopping-list resolution,
-bulletin-board permissions, and notification derivation.
+An end-to-end API test suite (158 checks across 6 suites) lives in
+[`tests/`](tests): it simulates two roommates through every flow —
+registration, invite codes, all split types, balances and settlement, bills,
+shopping, chores, cross-household isolation, the privacy guarantees of the
+personal ledger, recipe → shopping-list resolution, bulletin-board permissions,
+notification derivation, and a dedicated security suite (headers, every CSRF
+layer, auth walls, lockout, SQLi/XSS handling).
 
 Run everything with one command — it boots the app on a throwaway database for
 each suite and tears it down afterwards (this is exactly what CI runs):

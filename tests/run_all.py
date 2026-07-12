@@ -29,6 +29,7 @@ SUITES = [
     "recipe_test.py",
     "bulletin_test.py",
     "notif_test.py",
+    "security_test.py",
 ]
 
 

@@ -17,6 +17,18 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 # Upper bound applied to every monetary amount, guarding against overflow/typos.
 MAX_AMOUNT = 1_000_000
 
+# Control characters (except newline) never belong in user text.
+_CONTROL_CHARS_RE = re.compile(r"[\x00-\x09\x0b-\x1f\x7f]")
+
+
+def clean_text(value: Any) -> str:
+    """Normalise free-text input: drop control characters and trim whitespace.
+
+    Newlines are preserved (multi-line notes render intentionally); every other
+    control character is stripped so stored text is always printable.
+    """
+    return _CONTROL_CHARS_RE.sub("", str(value if value is not None else "")).strip()
+
 
 def err(message: str, code: int = 400) -> tuple[Response, int]:
     """Build a JSON error response ``{"error": message}`` with an HTTP code."""

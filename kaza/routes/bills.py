@@ -9,7 +9,7 @@ from kaza.auth import household_required
 from kaza.models import finance as finance_repo
 from kaza.services import finance as finance_service
 from kaza.services import households as households_service
-from kaza.utils import MONTH_RE, body, err
+from kaza.utils import MONTH_RE, body, clean_text, err
 
 bp = Blueprint("bills", __name__)
 
@@ -19,7 +19,7 @@ bp = Blueprint("bills", __name__)
 def add_bill():
     """Create a recurring bill."""
     d = body()
-    name = (d.get("name") or "").strip()
+    name = clean_text(d.get("name"))
     if not name or len(name) > 60:
         return err("נא להזין שם חשבון (עד 60 תווים)")
     try:

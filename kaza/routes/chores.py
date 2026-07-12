@@ -8,7 +8,7 @@ from flask import Blueprint, g, jsonify
 from kaza.auth import household_required
 from kaza.models import chores as chores_repo
 from kaza.services import households as households_service
-from kaza.utils import DATE_RE, body, err
+from kaza.utils import DATE_RE, body, clean_text, err
 
 bp = Blueprint("chores", __name__)
 
@@ -18,7 +18,7 @@ bp = Blueprint("chores", __name__)
 def add_chore():
     """Create a chore assigned to a household member."""
     d = body()
-    name = (d.get("name") or "").strip()
+    name = clean_text(d.get("name"))
     if not name or len(name) > 60:
         return err("נא להזין שם מטלה (עד 60 תווים)")
     try:
@@ -27,7 +27,7 @@ def add_chore():
         return err("נתונים לא תקינים")
     if assignee_id not in households_service.member_ids(g.hid):
         return err("המשויך/ת אינו חבר/ה בדירה")
-    freq = (d.get("freq") or "שבועי").strip()[:30] or "שבועי"
+    freq = clean_text(d.get("freq"))[:30] or "שבועי"
     chores_repo.create(g.hid, name, freq, assignee_id)
     return jsonify(ok=True)
 

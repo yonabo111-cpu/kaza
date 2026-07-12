@@ -8,17 +8,19 @@ from flask import Blueprint, g, jsonify
 from kaza.auth import end_session, hash_password, login_required, start_session, verify_password
 from kaza.models import households as households_repo
 from kaza.models import users as users_repo
-from kaza.security import login_limiter
-from kaza.utils import EMAIL_RE, body, err
+from kaza.security import client_ip, login_ip_limiter, login_limiter, register_ip_limiter
+from kaza.utils import EMAIL_RE, body, clean_text, err
 
 bp = Blueprint("auth", __name__)
 
 
 @bp.post("/api/register")
 def register():
-    """Create an account and start a session."""
+    """Create an account and start a session (rate-limited per IP)."""
+    if not register_ip_limiter.allow(client_ip()):
+        return err("יותר מדי הרשמות — נסו שוב מאוחר יותר", 429)
     d = body()
-    name = (d.get("name") or "").strip()
+    name = clean_text(d.get("name"))
     email = (d.get("email") or "").strip().lower()
     password = d.get("password") or ""
     if not name or len(name) > 40:
@@ -36,7 +38,9 @@ def register():
 
 @bp.post("/api/login")
 def login():
-    """Authenticate an existing account, with per-email rate limiting."""
+    """Authenticate an existing account, rate-limited per email and per IP."""
+    if not login_ip_limiter.allow(client_ip()):
+        return err("יותר מדי ניסיונות — נסו שוב בעוד דקה", 429)
     d = body()
     email = (d.get("email") or "").strip().lower()
     password = d.get("password") or ""

@@ -9,7 +9,7 @@ from kaza.auth import login_required
 from kaza.models import households as households_repo
 from kaza.models import users as users_repo
 from kaza.services import households as households_service
-from kaza.utils import body, err
+from kaza.utils import body, clean_text, err
 
 bp = Blueprint("households", __name__)
 
@@ -20,7 +20,7 @@ def create_household():
     """Create a household, seed its defaults, and join the creator to it."""
     if g.user["household_id"]:
         return err("כבר יש לך דירה משויכת")
-    name = (body().get("name") or "").strip()
+    name = clean_text(body().get("name"))
     if not name or len(name) > 60:
         return err("נא להזין שם לדירה (עד 60 תווים)")
     household_id = households_repo.create(name, households_service.new_invite_code())

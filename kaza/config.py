@@ -54,6 +54,9 @@ class BaseConfig:
     SESSION_COOKIE_SECURE = False
     PERMANENT_SESSION_LIFETIME = timedelta(days=60)
 
+    # HSTS is only meaningful behind HTTPS; enabled in production.
+    ENABLE_HSTS = False
+
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 
     @property
@@ -79,6 +82,7 @@ class ProductionConfig(BaseConfig):
     ENV_NAME = "production"
     DEBUG = False
     SESSION_COOKIE_SECURE = True
+    ENABLE_HSTS = True
 
 
 class TestingConfig(BaseConfig):

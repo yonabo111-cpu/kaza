@@ -11,7 +11,7 @@ from kaza.models import shopping as shopping_repo
 from kaza.services import finance as finance_service
 from kaza.services import households as households_service
 from kaza.services import recipes as recipes_service
-from kaza.utils import DATE_RE, body, err, valid_amount
+from kaza.utils import DATE_RE, body, clean_text, err, valid_amount
 
 bp = Blueprint("shopping", __name__)
 
@@ -21,10 +21,10 @@ bp = Blueprint("shopping", __name__)
 def add_shopping():
     """Add a single item to the shopping list."""
     d = body()
-    name = (d.get("name") or "").strip()
+    name = clean_text(d.get("name"))
     if not name or len(name) > 80:
         return err("נא להזין שם פריט (עד 80 תווים)")
-    note = (d.get("note") or "").strip()[:80]
+    note = clean_text(d.get("note"))[:80]
     shopping_repo.create(g.hid, name, note, bool(d.get("urgent")), g.user["id"])
     return jsonify(ok=True)
 
@@ -99,7 +99,7 @@ def _record_shopping_expense(expense: dict, done_items: list) -> object | None:
 @household_required
 def recipe_lookup():
     """Resolve a free-text dish to an ingredient list."""
-    dish_raw = (body().get("dish") or "").strip()
+    dish_raw = clean_text(body().get("dish"))
     if not dish_raw or len(dish_raw) > 80:
         return err("נא לכתוב מה בא לכם לאכול (עד 80 תווים)")
     status, payload = recipes_service.resolve(dish_raw)
@@ -124,8 +124,8 @@ def add_shopping_bulk():
     for item in items:
         if not isinstance(item, dict):
             continue
-        name = str(item.get("name") or "").strip()[:80]
-        note = str(item.get("note") or "").strip()[:80]
+        name = clean_text(item.get("name"))[:80]
+        note = clean_text(item.get("note"))[:80]
         if not name:
             continue
         if name in existing:

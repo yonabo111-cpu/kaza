@@ -9,7 +9,7 @@ from kaza.auth import household_required
 from kaza.models import finance as finance_repo
 from kaza.services import finance as finance_service
 from kaza.services import households as households_service
-from kaza.utils import DATE_RE, body, err, valid_amount
+from kaza.utils import DATE_RE, body, clean_text, err, valid_amount
 
 bp = Blueprint("finance", __name__)
 
@@ -22,7 +22,7 @@ bp = Blueprint("finance", __name__)
 def add_expense():
     """Record a shared expense and its per-member split."""
     d = body()
-    descr = (d.get("descr") or "").strip()
+    descr = clean_text(d.get("descr"))
     date = d.get("date") or ""
     split = d.get("split_type") or "equal"
     try:
@@ -126,7 +126,7 @@ def delete_settlement(settlement_id: int):
 def add_category():
     """Create a budget category."""
     d = body()
-    name = (d.get("name") or "").strip()
+    name = clean_text(d.get("name"))
     if not name or len(name) > 40:
         return err("נא להזין שם קטגוריה (עד 40 תווים)")
     budget = max(0.0, float(d.get("budget") or 0))
