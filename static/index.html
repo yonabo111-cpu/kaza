@@ -15,11 +15,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f6f5f2; --surface:#ffffff; --ink:#191a1e; --ink2:#565962; --muted:#8e9099;
+    --bg:#f6f5f2; --surface:#ffffff; --ink:#191a1e; --ink2:#565962; --muted:#6b6e76;
     --grid:#ebeae6; --baseline:#d4d3cd; --border:rgba(25,25,35,.08);
-    --accent:#2a78d6; --accent2:#4a3aa7; --good:#0ca30c; --good-text:#006300;
+    --accent:#2570cf; --accent2:#4a3aa7; --good:#0ca30c; --good-text:#006300;
     --warn:#fab219; --serious:#ec835a; --critical:#d03b3b;
-    --brand:linear-gradient(135deg,#2a78d6 0%,#4a3aa7 100%);
+    --brand:linear-gradient(135deg,#2570cf 0%,#4a3aa7 100%);
     --shadow-card:0 1px 2px rgba(16,24,40,.05), 0 2px 10px rgba(16,24,40,.05);
     --shadow-pop:0 12px 40px rgba(16,24,40,.18);
     --r:16px;
@@ -380,10 +380,90 @@
     animation:spin .8s linear infinite;
   }
   @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ============ accessibility widget ============ */
+  .a11y-fab{
+    position:fixed; left:14px; bottom:14px; z-index:60;
+    width:46px; height:46px; border-radius:50%; border:none; cursor:pointer;
+    background:var(--brand); color:#fff; font-size:22px; line-height:1;
+    box-shadow:var(--shadow-pop); display:flex; align-items:center; justify-content:center;
+  }
+  .a11y-panel{
+    position:fixed; left:14px; bottom:68px; z-index:60; width:240px;
+    background:var(--surface); color:var(--ink); border:1px solid var(--border);
+    border-radius:14px; box-shadow:var(--shadow-pop); padding:12px;
+    display:none; flex-direction:column; gap:8px;
+  }
+  body.a11y-open .a11y-panel{display:flex;}
+  .a11y-panel .a11y-title{font-weight:700; font-size:14px; margin-bottom:2px;}
+  .a11y-row{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13.5px;}
+  .a11y-row .a11y-sizes{display:flex; gap:4px;}
+  .a11y-panel button{
+    font-family:inherit; cursor:pointer; border:1px solid var(--border);
+    background:var(--bg); color:var(--ink); border-radius:9px; padding:7px 10px; font-size:13.5px;
+  }
+  .a11y-sizes button{width:34px; padding:6px 0; font-weight:600;}
+  .a11y-toggle{width:100%; text-align:start;}
+  .a11y-toggle[aria-pressed="true"]{background:var(--brand); color:#fff; border-color:transparent;}
+  .a11y-reset{width:100%; color:var(--ink2);}
+  @media (max-width:760px){
+    .a11y-fab{bottom:calc(72px + env(safe-area-inset-bottom));}
+    .a11y-panel{bottom:calc(126px + env(safe-area-inset-bottom));}
+  }
+
+  /* high-contrast mode (widget toggle) */
+  html.hc{--ink:#000; --ink2:#1a1a1a; --muted:#333; --border:rgba(0,0,0,.55); --grid:#c9c9c9;}
+  @media (prefers-color-scheme: dark){
+    html.hc{--ink:#fff; --ink2:#ececec; --muted:#d0d0d0; --border:rgba(255,255,255,.65); --surface:#000; --bg:#000;}
+  }
+  html.hc a{text-decoration:underline;}
+  html.hc .btn, html.hc nav.tabs button.active{outline:1px solid currentColor;}
+
+  /* stop-animations mode (widget toggle) */
+  html.no-motion *, html.no-motion *::before, html.no-motion *::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; scroll-behavior:auto !important;
+  }
+
+  /* ============ cookie notice ============ */
+  .cookie-note{
+    position:fixed; left:12px; right:12px; bottom:12px; z-index:55; margin:0 auto; max-width:560px;
+    background:var(--surface); color:var(--ink); border:1px solid var(--border);
+    border-radius:14px; box-shadow:var(--shadow-pop); padding:12px 14px;
+    display:flex; align-items:center; gap:12px; font-size:13px; line-height:1.5;
+  }
+  .cookie-note .btn{flex-shrink:0;}
+  @media (max-width:760px){
+    .cookie-note{bottom:calc(74px + env(safe-area-inset-bottom)); flex-direction:column; align-items:stretch; text-align:center;}
+  }
 </style>
 </head>
 <body>
 <a href="#mainContent" class="skip-link">דילוג לתוכן הראשי</a>
+
+<!-- ============ וידג'ט נגישות ============ -->
+<button class="a11y-fab" id="a11yBtn" onclick="toggleA11y(event)"
+        aria-haspopup="true" aria-expanded="false" aria-controls="a11yPanel" aria-label="הגדרות נגישות">♿</button>
+<div class="a11y-panel" id="a11yPanel" role="dialog" aria-label="הגדרות נגישות">
+  <div class="a11y-title">הגדרות נגישות</div>
+  <div class="a11y-row" role="group" aria-label="גודל טקסט">
+    <span>גודל טקסט</span>
+    <div class="a11y-sizes">
+      <button onclick="a11yFont(-1)" aria-label="הקטנת טקסט">A−</button>
+      <button onclick="a11yFont(0)" aria-label="גודל טקסט רגיל">A</button>
+      <button onclick="a11yFont(1)" aria-label="הגדלת טקסט">A+</button>
+    </div>
+  </div>
+  <button class="a11y-toggle" id="a11yContrast" onclick="a11yToggle('contrast')" aria-pressed="false">🌓 ניגודיות גבוהה</button>
+  <button class="a11y-toggle" id="a11yMotion" onclick="a11yToggle('motion')" aria-pressed="false">⏸️ עצירת אנימציות</button>
+  <button class="a11y-reset" onclick="a11yReset()">איפוס הגדרות נגישות</button>
+</div>
+
+<!-- ============ הודעת עוגיות ============ -->
+<div class="cookie-note" id="cookieNote" role="region" aria-label="הודעת עוגיות">
+  <span>🍪 האתר משתמש בעוגייה חיונית אחת בלבד — כדי לשמור אותך מחובר. אין מעקב, אין פרסום, ואין שיתוף עם צד שלישי.</span>
+  <button class="btn" onclick="dismissCookie()">הבנתי</button>
+</div>
 
 <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <div class="modal-back" id="modalBack">
@@ -1189,13 +1269,64 @@ document.addEventListener("click", e=>{
     document.body.classList.remove("notif-open");
     syncBellExpanded();
   }
+  if(document.body.classList.contains("a11y-open")
+     && !e.target.closest(".a11y-panel") && !e.target.closest(".a11y-fab"))
+    closeA11y();
 });
 // Esc סוגר פאנלים/דיאלוגים צפים
 document.addEventListener("keydown", e=>{
   if(e.key !== "Escape") return;
   if(document.body.classList.contains("notif-open")){ document.body.classList.remove("notif-open"); syncBellExpanded(); }
   if(document.body.classList.contains("sheet-open")){ document.body.classList.remove("sheet-open"); document.getElementById("moreBtn")?.setAttribute("aria-expanded","false"); }
+  if(document.body.classList.contains("a11y-open")){ closeA11y(); }
 });
+
+/* ================= וידג'ט נגישות ================= */
+function toggleA11y(ev){
+  if(ev) ev.stopPropagation();
+  const open = document.body.classList.toggle("a11y-open");
+  document.getElementById("a11yBtn").setAttribute("aria-expanded", open ? "true" : "false");
+}
+function closeA11y(){
+  document.body.classList.remove("a11y-open");
+  document.getElementById("a11yBtn").setAttribute("aria-expanded", "false");
+}
+/* מחיל את העדפות הנגישות השמורות (מתמיד ב-localStorage בין ביקורים) */
+function applyA11y(){
+  const z = parseInt(localStorage.getItem("a11y-zoom") || "100", 10);
+  document.documentElement.style.zoom = z === 100 ? "" : z / 100;
+  const hc = localStorage.getItem("a11y-contrast") === "1";
+  const nm = localStorage.getItem("a11y-motion") === "1";
+  document.documentElement.classList.toggle("hc", hc);
+  document.documentElement.classList.toggle("no-motion", nm);
+  document.getElementById("a11yContrast")?.setAttribute("aria-pressed", hc ? "true" : "false");
+  document.getElementById("a11yMotion")?.setAttribute("aria-pressed", nm ? "true" : "false");
+}
+function a11yFont(dir){
+  let z = parseInt(localStorage.getItem("a11y-zoom") || "100", 10);
+  z = dir === 0 ? 100 : Math.min(150, Math.max(90, z + dir * 10));
+  localStorage.setItem("a11y-zoom", z);
+  applyA11y();
+}
+function a11yToggle(kind){
+  const key = "a11y-" + kind;
+  localStorage.setItem(key, localStorage.getItem(key) === "1" ? "0" : "1");
+  applyA11y();
+}
+function a11yReset(){
+  ["a11y-zoom", "a11y-contrast", "a11y-motion"].forEach(k => localStorage.removeItem(k));
+  applyA11y();
+}
+
+/* ================= הודעת עוגיות ================= */
+function dismissCookie(){
+  localStorage.setItem("cookie-ok", "1");
+  document.getElementById("cookieNote").style.display = "none";
+}
+function initCookieNote(){
+  if(localStorage.getItem("cookie-ok") === "1")
+    document.getElementById("cookieNote").style.display = "none";
+}
 
 /* ================= bulletin board ================= */
 /* רענון הלוח בלבד דרך ה-GET הייעודי — בלי לטעון מחדש את כל המצב */
@@ -1517,6 +1648,10 @@ document.addEventListener("visibilitychange", ()=>{ if(S && document.visibilityS
 
 // אייקוני האמוג'י בניווט הם דקורטיביים — מסתירים אותם מקוראי מסך כדי שיוקרא רק הטקסט
 document.querySelectorAll("nav.tabs .ico, .sheet .ico").forEach(el=>el.setAttribute("aria-hidden","true"));
+
+// החלת העדפות נגישות שמורות + הודעת עוגיות
+applyA11y();
+initCookieNote();
 
 boot();
 </script>
