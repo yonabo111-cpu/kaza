@@ -58,6 +58,12 @@ model documented and tested end-to-end, Docker, and CI. The UI is **Hebrew
 ## Screenshots
 
 <p align="center">
+  <img src="docs/screenshots/demo.gif" alt="Kaza in action: add a shared expense, watch the month-anchored settle-up update, and track your private budget" width="88%">
+</p>
+
+<p align="center"><i>Add a shared expense → the settle-up recomputes (carry-over included) → your private budget updates. (Fictional demo data.)</i></p>
+
+<p align="center">
   <img src="docs/screenshots/dashboard.png" alt="Kaza dashboard" width="88%">
 </p>
 
