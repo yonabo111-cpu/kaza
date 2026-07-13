@@ -13,7 +13,7 @@ import os
 import secrets
 from datetime import timedelta
 
-# Repo root = parent of this package directory (…/home-app).
+# Repo root = parent of this package directory (the Kaza project folder).
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(PACKAGE_DIR)
 STATIC_DIR = os.path.join(ROOT_DIR, "static")

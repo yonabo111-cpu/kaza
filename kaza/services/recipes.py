@@ -14,9 +14,9 @@ from typing import Any
 
 from kaza.models import recipes as recipe_repo
 
-# The offline built-in cookbook + query normaliser live at the repo root.
-from recipes import normalize as normalize_dish
-from recipes import resolve_builtin
+# The offline built-in cookbook + query normaliser.
+from kaza.recipe_book import normalize as normalize_dish
+from kaza.recipe_book import resolve_builtin
 
 # JSON schema the model must return — a dish name plus name/quantity pairs.
 RECIPE_SCHEMA: dict[str, Any] = {
