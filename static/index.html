@@ -42,6 +42,12 @@
   }
   button{font-family:inherit;}
   :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px;}
+  .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
+  .skip-link{position:fixed; top:-60px; right:12px; z-index:100; background:var(--accent); color:#fff; padding:10px 16px; border-radius:0 0 10px 10px; text-decoration:none; font-weight:600; box-shadow:var(--shadow-pop); transition:top .15s;}
+  .skip-link:focus{top:0;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important;}
+  }
 
   /* ============ hero header ============ */
   .hero{background:var(--brand); color:#fff; border-radius:0 0 22px 22px; box-shadow:var(--shadow-card);}
@@ -377,10 +383,11 @@
 </style>
 </head>
 <body>
+<a href="#mainContent" class="skip-link">דילוג לתוכן הראשי</a>
 
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <div class="modal-back" id="modalBack">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalMsg">
     <div class="msg" id="modalMsg"></div>
     <div class="modal-actions">
       <button class="btn" id="modalOk">אישור</button>
@@ -388,7 +395,7 @@
     </div>
   </div>
 </div>
-<div class="loader" id="loader"><div class="spinner"></div></div>
+<div class="loader" id="loader" role="status" aria-live="polite"><div class="spinner"></div><span class="sr-only">טוען…</span></div>
 
 <!-- ============ מסך כניסה ============ -->
 <div class="screen" id="screen-auth">
@@ -454,22 +461,22 @@
 
 <!-- ============ האפליקציה ============ -->
 <div class="screen" id="screen-app">
-<div class="hero">
+<header class="hero">
   <div class="hero-in">
     <div class="hero-top">
       <div>
-        <div class="greet" id="heroGreeting"></div>
+        <h1 class="greet" id="heroGreeting"></h1>
         <div class="house" id="heroHouse"></div>
       </div>
       <div style="display:flex; align-items:center; gap:8px">
-        <div class="month-nav">
-          <button onclick="shiftMonth(-1)" title="חודש קודם">›</button>
-          <div class="label" id="monthLabel"></div>
-          <button onclick="shiftMonth(1)" title="חודש הבא">‹</button>
+        <div class="month-nav" role="group" aria-label="בחירת חודש">
+          <button onclick="shiftMonth(-1)" title="חודש קודם" aria-label="חודש קודם">›</button>
+          <div class="label" id="monthLabel" aria-live="polite"></div>
+          <button onclick="shiftMonth(1)" title="חודש הבא" aria-label="חודש הבא">‹</button>
         </div>
         <div class="bell-wrap">
-          <button class="bell" onclick="toggleNotifPanel(event)" title="התראות">🔔<span id="bellBadge" class="bell-badge" style="display:none"></span></button>
-          <div class="notif-panel" id="notifPanel">
+          <button class="bell" onclick="toggleNotifPanel(event)" title="התראות" aria-label="התראות" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">🔔<span id="bellBadge" class="bell-badge" style="display:none"></span></button>
+          <div class="notif-panel" id="notifPanel" role="region" aria-label="התראות">
             <div class="notif-head">🔔 התראות</div>
             <div id="notifList"></div>
           </div>
@@ -478,10 +485,10 @@
     </div>
     <div class="hero-members" id="heroMembers"></div>
   </div>
-</div>
+</header>
 
-<nav class="tabs" id="tabs">
-  <button data-tab="dash" class="active" onclick="switchTab('dash')"><span class="ico">🏠</span><span>סקירה</span></button>
+<nav class="tabs" id="tabs" aria-label="ניווט ראשי">
+  <button data-tab="dash" class="active" aria-current="page" onclick="switchTab('dash')"><span class="ico" aria-hidden="true">🏠</span><span>סקירה</span></button>
   <button data-tab="expenses" onclick="switchTab('expenses')"><span class="ico">💸</span><span>הוצאות</span></button>
   <button data-tab="personal" onclick="switchTab('personal')"><span class="ico">🔒</span><span>אישי</span></button>
   <button data-tab="shopping" onclick="switchTab('shopping')"><span class="ico">🛒</span><span>קניות</span></button>
@@ -489,17 +496,17 @@
   <button data-tab="bills" class="tab-extra" onclick="switchTab('bills')"><span class="ico">🧾</span><span>חשבונות</span></button>
   <button data-tab="chores" class="tab-extra" onclick="switchTab('chores')"><span class="ico">🧽</span><span>מטלות</span></button>
   <button data-tab="settings" class="tab-extra" onclick="switchTab('settings')"><span class="ico">⚙️</span><span>הגדרות</span></button>
-  <button id="moreBtn" onclick="toggleMore(event)"><span class="ico">⋯</span><span>עוד</span></button>
+  <button id="moreBtn" onclick="toggleMore(event)" aria-haspopup="true" aria-expanded="false" aria-controls="moreSheet"><span class="ico" aria-hidden="true">⋯</span><span>עוד</span></button>
 </nav>
 <div class="sheet-back" onclick="toggleMore()"></div>
-<div class="sheet" id="moreSheet">
+<div class="sheet" id="moreSheet" role="menu" aria-label="לשוניות נוספות">
   <button data-tab="budgets" onclick="switchTab('budgets')"><span class="ico">🎯</span><span>תקציבים</span></button>
   <button data-tab="bills" onclick="switchTab('bills')"><span class="ico">🧾</span><span>חשבונות</span></button>
   <button data-tab="chores" onclick="switchTab('chores')"><span class="ico">🧽</span><span>מטלות</span></button>
   <button data-tab="settings" onclick="switchTab('settings')"><span class="ico">⚙️</span><span>הגדרות</span></button>
 </div>
 
-<main>
+<main id="mainContent" tabindex="-1">
   <section class="tab active" id="tab-dash">
     <div class="tiles" id="dashTiles"></div>
     <div class="card">
@@ -579,7 +586,7 @@
     <div class="card">
       <h2>🎯 התקציב האישי שלי <span class="note">🔒 כל מה שבלשונית הזאת גלוי רק לך</span></h2>
       <div class="meter-row" style="grid-template-columns:110px 1fr auto">
-        <input type="number" id="pBudget" min="0" step="50" onchange="setPersonalBudget(this.value)" style="padding:6px 10px" title="תקציב אישי חודשי">
+        <input type="number" id="pBudget" min="0" step="50" onchange="setPersonalBudget(this.value)" style="padding:6px 10px" title="תקציב אישי חודשי" aria-label="תקציב אישי חודשי בשקלים">
         <div class="meter" id="pMeter"><div class="meter-fill" id="pMeterFill"></div></div>
         <div class="nums" id="pMeterNums"></div>
       </div>
@@ -762,18 +769,32 @@ function uiConfirm(msg, okLabel = "אישור", danger = false){
   return new Promise(resolve => {
     const back = document.getElementById("modalBack");
     const ok = document.getElementById("modalOk");
+    const cancel = document.getElementById("modalCancel");
+    const prevFocus = document.activeElement;
     document.getElementById("modalMsg").textContent = msg;
     ok.textContent = okLabel;
     ok.className = danger ? "btn solid-danger" : "btn";
     back.classList.add("open");
+    ok.focus();
+    const onKey = e => {
+      if(e.key === "Escape") done(false);
+      // מלכודת מיקוד פשוטה: Tab מדלג רק בין שני הכפתורים
+      if(e.key === "Tab"){
+        e.preventDefault();
+        (document.activeElement === ok ? cancel : ok).focus();
+      }
+    };
     const done = val => {
       back.classList.remove("open");
-      ok.onclick = document.getElementById("modalCancel").onclick = back.onclick = null;
+      ok.onclick = cancel.onclick = back.onclick = null;
+      document.removeEventListener("keydown", onKey, true);
+      if(prevFocus && prevFocus.focus) prevFocus.focus();
       resolve(val);
     };
     ok.onclick = () => done(true);
-    document.getElementById("modalCancel").onclick = () => done(false);
+    cancel.onclick = () => done(false);
     back.onclick = e => { if(e.target === back) done(false); };
+    document.addEventListener("keydown", onKey, true);
   });
 }
 
@@ -901,7 +922,11 @@ async function joinHousehold(ev){
 
 /* ================= tabs ================= */
 function switchTab(id){
-  document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active", b.dataset.tab===id));
+  document.querySelectorAll("[data-tab]").forEach(b=>{
+    const on = b.dataset.tab===id;
+    b.classList.toggle("active", on);
+    if(on) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
+  });
   document.querySelectorAll("section.tab").forEach(s=>s.classList.toggle("active", s.id==="tab-"+id));
   // במובייל: כפתור "עוד" נדלק כשלשונית מתוך התפריט פעילה
   const extras = ["budgets","bills","chores","settings"];
@@ -911,7 +936,8 @@ function switchTab(id){
 }
 function toggleMore(ev){
   if(ev) ev.stopPropagation();
-  document.body.classList.toggle("sheet-open");
+  const open = document.body.classList.toggle("sheet-open");
+  document.getElementById("moreBtn").setAttribute("aria-expanded", open ? "true" : "false");
 }
 
 /* ================= expenses ================= */
@@ -1022,7 +1048,7 @@ function renderPersonal(){
     <td>${esc(p.descr)}</td>
     <td>${p.category?`<span class="badge">${catEmoji(p.category)} ${esc(p.category)}</span>`:""}</td>
     <td class="num"><b>${fmt(p.amount)}</b></td>
-    <td><button class="mini-btn danger" onclick="deletePrivate(${p.id})">✕</button></td>
+    <td><button class="mini-btn danger" onclick="deletePrivate(${p.id})" aria-label="מחיקת ההוצאה הפרטית ${esc(p.descr)}">✕</button></td>
   </tr>`).join("");
   document.getElementById("pEmpty").style.display = P.expenses.length ? "none" : "";
   document.getElementById("pCatList").innerHTML =
@@ -1139,9 +1165,14 @@ function renderNotifications(){
     </div>`).join("")
   : `<div class="notif-empty">✨ אין התראות — הכול תחת שליטה</div>`;
 }
+function syncBellExpanded(){
+  const open = document.body.classList.contains("notif-open");
+  document.querySelector(".bell")?.setAttribute("aria-expanded", open ? "true" : "false");
+}
 function toggleNotifPanel(ev){
   if(ev) ev.stopPropagation();
   const open = document.body.classList.toggle("notif-open");
+  syncBellExpanded();
   if(open){
     // פתיחת הפאנל מסמנת הכול כנקרא — הבאדג' מתאפס, הרשימה נשארת
     localStorage.setItem(seenKey(), JSON.stringify((S.notifications||[]).map(n=>n.id)));
@@ -1150,11 +1181,20 @@ function toggleNotifPanel(ev){
 }
 function openNotif(tab){
   document.body.classList.remove("notif-open");
+  syncBellExpanded();
   switchTab(tab);
 }
 document.addEventListener("click", e=>{
-  if(document.body.classList.contains("notif-open") && !e.target.closest(".bell-wrap"))
+  if(document.body.classList.contains("notif-open") && !e.target.closest(".bell-wrap")){
     document.body.classList.remove("notif-open");
+    syncBellExpanded();
+  }
+});
+// Esc סוגר פאנלים/דיאלוגים צפים
+document.addEventListener("keydown", e=>{
+  if(e.key !== "Escape") return;
+  if(document.body.classList.contains("notif-open")){ document.body.classList.remove("notif-open"); syncBellExpanded(); }
+  if(document.body.classList.contains("sheet-open")){ document.body.classList.remove("sheet-open"); document.getElementById("moreBtn")?.setAttribute("aria-expanded","false"); }
 });
 
 /* ================= bulletin board ================= */
@@ -1195,7 +1235,7 @@ function renderBulletin(){
       <div class="note-meta">
         <span class="who">${avatar(n.author_id,"sm")} <span>${esc(n.author)}</span></span>
         <span>· ${noteDate(n.created_at)}</span>
-        <button class="mini-btn danger del" onclick="deleteNote(${n.id})" title="הסרת המודעה">🗑</button>
+        <button class="mini-btn danger del" onclick="deleteNote(${n.id})" title="הסרת המודעה" aria-label="הסרת המודעה">🗑</button>
       </div>
     </div>`).join("")
   : `<div class="empty" style="grid-column:1/-1"><span class="e">📋</span>הלוח ריק — פרסמו את המודעה הראשונה</div>`;
@@ -1350,7 +1390,7 @@ function renderExpenses(){
     <td class="num"><b>${fmt(e.my_share)}</b></td>
     <td>${who(e.payer_id)}</td>
     <td style="font-size:12.5px;color:var(--ink2)">${splitLabel(e.split_type)}</td>
-    <td><button class="mini-btn danger" onclick="deleteExpense(${e.id})">✕</button></td>
+    <td><button class="mini-btn danger" onclick="deleteExpense(${e.id})" aria-label="מחיקת ההוצאה ${esc(e.descr)}">✕</button></td>
   </tr>`).join("");
   document.getElementById("expEmpty").style.display = mine.length ? "none" : "";
 
@@ -1377,7 +1417,7 @@ function renderExpenses(){
     ? `<div class="hint" style="margin-top:10px">העברות אחרונות:</div>` +
       S.settlements.map(s=>`<div class="list-item">
         <div class="grow" style="font-size:13px">${heDate(s.date)} — ${esc(s.from)} העביר/ה ל${esc(s.to)} ${fmt(s.amount)}</div>
-        <button class="mini-btn danger" onclick="deleteSettlement(${s.id})">✕</button>
+        <button class="mini-btn danger" onclick="deleteSettlement(${s.id})" aria-label="מחיקת העברה">✕</button>
       </div>`).join("")
     : "";
 }
@@ -1391,7 +1431,7 @@ function renderBudgets(){
       <div class="meter" style="--m:${meterColor(r)}"><div class="meter-fill" style="width:${Math.min(100,r*100)}%"></div></div>
       <div style="display:flex; gap:8px; align-items:center">
         <span class="nums">${fmt(c.spent)}</span>
-        <button class="mini-btn danger" onclick="deleteCategory(${c.id})" title="מחיקת קטגוריה">✕</button>
+        <button class="mini-btn danger" onclick="deleteCategory(${c.id})" title="מחיקת קטגוריה" aria-label="מחיקת הקטגוריה ${esc(c.name)}">✕</button>
       </div>
     </div>`;
   }).join("");
@@ -1406,7 +1446,7 @@ function renderShopping(){
       <div class="grow">${esc(i.name)} ${i.note?`<span class="meta">· ${esc(i.note)}</span>`:""}
         <span class="meta">· הוסיפ/ה ${esc(i.added_by)}</span></div>
       ${i.urgent?'<span class="badge urgent">דחוף</span>':""}
-      <button class="mini-btn danger" onclick="deleteShopItem(${i.id})">✕</button>
+      <button class="mini-btn danger" onclick="deleteShopItem(${i.id})" aria-label="מחיקת ${esc(i.name)} מהרשימה">✕</button>
     </div>`).join("") : `<div class="empty"><span class="e">🧺</span>הרשימה ריקה — מוסיפים פריט למעלה</div>`;
   document.getElementById("shopClearWrap").style.display = items.some(i=>i.done) ? "" : "none";
 }
@@ -1427,7 +1467,7 @@ function renderBills(){
            <span class="row-actions">${S.members.map(m=>
               `<button class="mini-btn" onclick="payBill(${b.id},${m.id})">${avatar(m.id,"sm")} שילם/ה</button>`).join("")}
            </span>`}
-      <button class="mini-btn danger" onclick="deleteBill(${b.id})">✕</button>
+      <button class="mini-btn danger" onclick="deleteBill(${b.id})" aria-label="מחיקת החשבון ${esc(b.name)}">✕</button>
     </div>`;
   }).join("") : `<div class="empty"><span class="e">🧾</span>אין חשבונות קבועים — מוסיפים למטה</div>`;
 }
@@ -1439,7 +1479,7 @@ function renderChores(){
         <span class="meta">· ${esc(c.freq)}${c.last_done?` · בוצע לאחרונה ${heDate(c.last_done)}`:""}</span></div>
       <span class="badge" style="display:inline-flex; align-items:center; gap:5px">תור של ${avatar(c.assignee_id,"sm")} ${esc(c.assignee)}</span>
       <button class="mini-btn" onclick="doneChore(${c.id})">בוצע ✓</button>
-      <button class="mini-btn danger" onclick="deleteChore(${c.id})">✕</button>
+      <button class="mini-btn danger" onclick="deleteChore(${c.id})" aria-label="מחיקת המטלה ${esc(c.name)}">✕</button>
     </div>`).join("") : `<div class="empty"><span class="e">🧽</span>אין מטלות — מוסיפים למטה</div>`;
 }
 
@@ -1474,6 +1514,9 @@ function renderAll(){
 /* רענון שקט — עדכונים של השותפים מופיעים בלי לרענן ידנית */
 setInterval(()=>{ if(S && document.visibilityState==="visible") loadState().catch(()=>{}); }, 60000);
 document.addEventListener("visibilitychange", ()=>{ if(S && document.visibilityState==="visible") loadState().catch(()=>{}); });
+
+// אייקוני האמוג'י בניווט הם דקורטיביים — מסתירים אותם מקוראי מסך כדי שיוקרא רק הטקסט
+document.querySelectorAll("nav.tabs .ico, .sheet .ico").forEach(el=>el.setAttribute("aria-hidden","true"));
 
 boot();
 </script>
