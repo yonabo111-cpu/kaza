@@ -261,22 +261,42 @@ docker compose up --build      # → http://localhost:5050
 Serves with gunicorn and persists SQLite in a named volume. For a real
 deployment set `KAZA_ENV=production` (behind HTTPS) and a `SECRET_KEY`.
 
-### PythonAnywhere (free, persistent disk — SQLite survives)
+### PythonAnywhere (free tier — persistent SQLite, ideal for a shareable test link)
 
-1. Sign up at <https://www.pythonanywhere.com> (free *Beginner* plan).
-2. Upload this folder (zip + `unzip` in a Bash console).
-3. Console: `pip install --user flask waitress`
-4. **Web → Add a new web app → Manual configuration** (Python 3.10+).
-5. Point the WSGI config file at the app:
+1. Sign up for a free **Beginner** account at <https://www.pythonanywhere.com>.
+2. Open a **Bash console** and clone + install into a virtualenv:
+
+   ```bash
+   git clone https://github.com/yonabo111-cpu/kaza.git
+   cd kaza
+   python3.10 -m venv .venv
+   .venv/bin/pip install -r requirements.txt
+   ```
+
+3. **Web → Add a new web app → Manual configuration → Python 3.10.**
+4. In the **Virtualenv** field, enter `/home/<you>/kaza/.venv`.
+5. Open the **WSGI configuration file** (linked on the Web tab) and replace its
+   contents with:
 
    ```python
-   import sys
-   sys.path.insert(0, "/home/<you>/kaza")
+   import os, sys
+   os.environ["KAZA_ENV"] = "production"        # secure cookies + HSTS
+   path = "/home/<you>/kaza"
+   if path not in sys.path:
+       sys.path.insert(0, path)
    from wsgi import app as application
    ```
 
 6. **Reload** — live at `https://<you>.pythonanywhere.com`. Share the link and
    your invite code.
+
+**Shipping updates:** `cd kaza && git pull` in the Bash console, then hit
+**Reload** on the Web tab — about 30 seconds, no rebuild. SQLite (in `data/`)
+and everyone's test data survive the update.
+
+> The optional AI recipe fallback needs outbound HTTPS, which the free tier
+> restricts — it stays silently disabled while the built-in recipe book keeps
+> working. Every other feature runs fully offline on SQLite.
 
 ### Render / Railway / Fly
 
