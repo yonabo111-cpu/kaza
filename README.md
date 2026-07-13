@@ -57,16 +57,17 @@ model documented and tested end-to-end, Docker, and CI. The UI is **Hebrew
 
 ## Screenshots
 
-> 📸 _Placeholders — drop the images into `docs/screenshots/` and they render
-> here. See [`docs/screenshots/README.md`](docs/screenshots/README.md) for the
-> recommended shots._
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Kaza dashboard" width="88%">
+</p>
 
-| Dashboard (light) | Expenses & settle-up | Mobile (dark) |
-|:--:|:--:|:--:|
-| _`docs/screenshots/dashboard.png`_ | _`docs/screenshots/expenses.png`_ | _`docs/screenshots/mobile-dark.png`_ |
+<p align="center">
+  <img src="docs/screenshots/expenses.png" alt="Per-person expenses and month-anchored settle-up" width="60%">
+  &nbsp;
+  <img src="docs/screenshots/mobile-dark.png" alt="Mobile, dark mode" width="24%">
+</p>
 
-**Demo:** _`docs/screenshots/demo.gif`_ — a 10-second walkthrough (add an
-expense → settle up → recipe to shopping list).
+<p align="center"><i>Dashboard · per-person expenses with month-anchored, carry-over settle-up · mobile dark mode. (Fictional demo data.)</i></p>
 
 ## Features
 
