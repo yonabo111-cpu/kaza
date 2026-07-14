@@ -550,9 +550,9 @@
       </div>
       <div style="display:flex; align-items:center; gap:8px">
         <div class="month-nav" role="group" aria-label="בחירת חודש">
-          <button dir="ltr" onclick="shiftMonth(1)" title="חודש הבא" aria-label="חודש הבא">›</button>
+          <button dir="ltr" onclick="shiftMonth(-1)" title="חודש קודם" aria-label="חודש קודם">›</button>
           <div class="label" id="monthLabel" aria-live="polite"></div>
-          <button dir="ltr" onclick="shiftMonth(-1)" title="חודש קודם" aria-label="חודש קודם">‹</button>
+          <button dir="ltr" onclick="shiftMonth(1)" title="חודש הבא" aria-label="חודש הבא">‹</button>
         </div>
         <div class="bell-wrap">
           <button class="bell" onclick="toggleNotifPanel(event)" title="התראות" aria-label="התראות" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">🔔<span id="bellBadge" class="bell-badge" style="display:none"></span></button>
