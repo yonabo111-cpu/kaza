@@ -66,6 +66,12 @@
     border-radius:999px; cursor:pointer; font-size:16px; transition:background .15s;
   }
   .month-nav button:hover{background:rgba(255,255,255,.18);}
+  /* arrows drawn in CSS (border + rotate) so RTL bidi can't mirror them */
+  .month-nav .mn-arrow{display:inline-flex; align-items:center; justify-content:center;}
+  .month-nav .mn-arrow::before{content:""; display:block; width:8px; height:8px;
+    border:solid currentColor; border-width:2px 2px 0 0;}
+  .month-nav .arr-right::before{transform:translateX(-2px) rotate(45deg);}   /* points right → */
+  .month-nav .arr-left::before{transform:translateX(2px) rotate(-135deg);}   /* points left ← */
   .month-nav .label{min-width:104px; text-align:center; font-weight:600; font-size:13.5px;}
 
   /* ============ avatars ============ */
@@ -550,9 +556,9 @@
       </div>
       <div style="display:flex; align-items:center; gap:8px">
         <div class="month-nav" role="group" aria-label="בחירת חודש">
-          <button dir="ltr" onclick="shiftMonth(-1)" title="חודש קודם" aria-label="חודש קודם">›</button>
+          <button class="mn-arrow arr-right" onclick="shiftMonth(-1)" title="חודש קודם" aria-label="חודש קודם"></button>
           <div class="label" id="monthLabel" aria-live="polite"></div>
-          <button dir="ltr" onclick="shiftMonth(1)" title="חודש הבא" aria-label="חודש הבא">‹</button>
+          <button class="mn-arrow arr-left" onclick="shiftMonth(1)" title="חודש הבא" aria-label="חודש הבא"></button>
         </div>
         <div class="bell-wrap">
           <button class="bell" onclick="toggleNotifPanel(event)" title="התראות" aria-label="התראות" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">🔔<span id="bellBadge" class="bell-badge" style="display:none"></span></button>
