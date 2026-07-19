@@ -43,7 +43,7 @@
   button{font-family:inherit;}
   :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px;}
   .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
-  .skip-link{position:fixed; top:-60px; right:12px; z-index:100; background:var(--accent); color:#fff; padding:10px 16px; border-radius:0 0 10px 10px; text-decoration:none; font-weight:600; box-shadow:var(--shadow-pop); transition:top .15s;}
+  .skip-link{position:fixed; top:-60px; inset-inline-start:12px; z-index:100; background:var(--accent); color:#fff; padding:10px 16px; border-radius:0 0 10px 10px; text-decoration:none; font-weight:600; box-shadow:var(--shadow-pop); transition:top .15s;}
   .skip-link:focus{top:0;}
   @media (prefers-reduced-motion: reduce){
     *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important;}
@@ -229,7 +229,7 @@
 
   /* ============ tables & lists ============ */
   table{width:100%; border-collapse:collapse; font-size:13.5px;}
-  th{color:var(--muted); font-weight:500; font-size:12px; text-align:right; padding:6px 8px; border-bottom:1px solid var(--grid);}
+  th{color:var(--muted); font-weight:500; font-size:12px; text-align:start; padding:6px 8px; border-bottom:1px solid var(--grid);}
   td{padding:8px; border-bottom:1px solid var(--grid); vertical-align:middle;}
   td.num{font-variant-numeric:tabular-nums; white-space:nowrap;}
   tr:last-child td{border-bottom:none;}
@@ -389,13 +389,13 @@
 
   /* ============ accessibility widget ============ */
   .a11y-fab{
-    position:fixed; left:14px; bottom:14px; z-index:60;
+    position:fixed; inset-inline-end:14px; bottom:14px; z-index:60;
     width:46px; height:46px; border-radius:50%; border:none; cursor:pointer;
     background:var(--brand); color:#fff; font-size:22px; line-height:1;
     box-shadow:var(--shadow-pop); display:flex; align-items:center; justify-content:center;
   }
   .a11y-panel{
-    position:fixed; left:14px; bottom:68px; z-index:60; width:240px;
+    position:fixed; inset-inline-end:14px; bottom:68px; z-index:60; width:240px;
     background:var(--surface); color:var(--ink); border:1px solid var(--border);
     border-radius:14px; box-shadow:var(--shadow-pop); padding:12px;
     display:none; flex-direction:column; gap:8px;
@@ -445,30 +445,37 @@
 </style>
 </head>
 <body>
-<a href="#mainContent" class="skip-link">דילוג לתוכן הראשי</a>
+<a href="#mainContent" class="skip-link" data-en="Skip to main content">דילוג לתוכן הראשי</a>
 
 <!-- ============ וידג'ט נגישות ============ -->
 <button class="a11y-fab" id="a11yBtn" onclick="toggleA11y(event)"
-        aria-haspopup="true" aria-expanded="false" aria-controls="a11yPanel" aria-label="הגדרות נגישות">♿</button>
-<div class="a11y-panel" id="a11yPanel" role="dialog" aria-label="הגדרות נגישות">
-  <div class="a11y-title">הגדרות נגישות</div>
-  <div class="a11y-row" role="group" aria-label="גודל טקסט">
-    <span>גודל טקסט</span>
+        aria-haspopup="true" aria-expanded="false" aria-controls="a11yPanel" aria-label="הגדרות נגישות" data-en-aria="Accessibility settings">♿</button>
+<div class="a11y-panel" id="a11yPanel" role="dialog" aria-label="הגדרות נגישות" data-en-aria="Accessibility settings">
+  <div class="a11y-title" data-en="Accessibility &amp; language">נגישות ושפה</div>
+  <div class="a11y-row" role="group" aria-label="שפה / Language">
+    <span data-en="Language">שפה</span>
     <div class="a11y-sizes">
-      <button onclick="a11yFont(-1)" aria-label="הקטנת טקסט">A−</button>
-      <button onclick="a11yFont(0)" aria-label="גודל טקסט רגיל">A</button>
-      <button onclick="a11yFont(1)" aria-label="הגדלת טקסט">A+</button>
+      <button id="langHe" onclick="setLang('he')" style="width:auto; padding:6px 10px" aria-pressed="true">עברית</button>
+      <button id="langEn" onclick="setLang('en')" style="width:auto; padding:6px 10px" aria-pressed="false">EN</button>
     </div>
   </div>
-  <button class="a11y-toggle" id="a11yContrast" onclick="a11yToggle('contrast')" aria-pressed="false">🌓 ניגודיות גבוהה</button>
-  <button class="a11y-toggle" id="a11yMotion" onclick="a11yToggle('motion')" aria-pressed="false">⏸️ עצירת אנימציות</button>
-  <button class="a11y-reset" onclick="a11yReset()">איפוס הגדרות נגישות</button>
+  <div class="a11y-row" role="group" aria-label="גודל טקסט" data-en-aria="Text size">
+    <span data-en="Text size">גודל טקסט</span>
+    <div class="a11y-sizes">
+      <button onclick="a11yFont(-1)" aria-label="הקטנת טקסט" data-en-aria="Smaller text">A−</button>
+      <button onclick="a11yFont(0)" aria-label="גודל טקסט רגיל" data-en-aria="Normal text size">A</button>
+      <button onclick="a11yFont(1)" aria-label="הגדלת טקסט" data-en-aria="Larger text">A+</button>
+    </div>
+  </div>
+  <button class="a11y-toggle" id="a11yContrast" onclick="a11yToggle('contrast')" aria-pressed="false" data-en="🌓 High contrast">🌓 ניגודיות גבוהה</button>
+  <button class="a11y-toggle" id="a11yMotion" onclick="a11yToggle('motion')" aria-pressed="false" data-en="⏸️ Stop animations">⏸️ עצירת אנימציות</button>
+  <button class="a11y-reset" onclick="a11yReset()" data-en="Reset accessibility settings">איפוס הגדרות נגישות</button>
 </div>
 
 <!-- ============ הודעת עוגיות ============ -->
-<div class="cookie-note" id="cookieNote" role="region" aria-label="הודעת עוגיות">
-  <span>🍪 האתר משתמש בעוגייה חיונית אחת בלבד — כדי לשמור אותך מחובר. אין מעקב, אין פרסום, ואין שיתוף עם צד שלישי.</span>
-  <button class="btn" onclick="dismissCookie()">הבנתי</button>
+<div class="cookie-note" id="cookieNote" role="region" aria-label="הודעת עוגיות" data-en-aria="Cookie notice">
+  <span data-en="🍪 This site uses a single essential cookie — to keep you signed in. No tracking, no ads, no third-party sharing.">🍪 האתר משתמש בעוגייה חיונית אחת בלבד — כדי לשמור אותך מחובר. אין מעקב, אין פרסום, ואין שיתוף עם צד שלישי.</span>
+  <button class="btn" onclick="dismissCookie()" data-en="Got it">הבנתי</button>
 </div>
 
 <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -477,7 +484,7 @@
     <div class="msg" id="modalMsg"></div>
     <div class="modal-actions">
       <button class="btn" id="modalOk">אישור</button>
-      <button class="btn ghost" id="modalCancel">ביטול</button>
+      <button class="btn ghost" id="modalCancel" data-en="Cancel">ביטול</button>
     </div>
   </div>
 </div>
@@ -488,7 +495,7 @@
   <div class="center-wrap">
     <div class="auth-card">
       <div class="logo-dot">
-        <svg viewBox="0 0 128 128" role="img" aria-label="קאזה">
+        <svg viewBox="0 0 128 128" role="img" aria-label="קאזה" data-en-aria="Kaza">
           <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#2a78d6"/><stop offset="1" stop-color="#4a3aa7"/></linearGradient></defs>
           <rect width="128" height="128" rx="30" fill="url(#lg)"/>
@@ -497,24 +504,28 @@
           </g>
         </svg>
       </div>
-      <h1>קאזה</h1>
-      <div class="tagline">הבית המשותף שלכם, מסודר — תקציב, קניות, חשבונות ומטלות</div>
+      <h1 data-en="Kaza">קאזה</h1>
+      <div class="tagline" data-en="Your shared home, organized — budget, groceries, bills &amp; chores">הבית המשותף שלכם, מסודר — תקציב, קניות, חשבונות ומטלות</div>
+      <div style="text-align:center; margin-top:4px">
+        <button type="button" id="authLangLink" onclick="toggleLang()"
+          style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px; text-decoration:underline">English</button>
+      </div>
       <div class="auth-tabs">
-        <button id="authTabLogin" class="active" onclick="authMode('login')">התחברות</button>
-        <button id="authTabReg" onclick="authMode('register')">הרשמה</button>
+        <button id="authTabLogin" class="active" onclick="authMode('login')" data-en="Log in">התחברות</button>
+        <button id="authTabReg" onclick="authMode('register')" data-en="Sign up">הרשמה</button>
       </div>
       <form id="loginForm" onsubmit="doLogin(event)">
-        <label class="f">אימייל<input id="loginEmail" type="email" required autocomplete="email"></label>
-        <label class="f">סיסמה<input id="loginPw" type="password" required autocomplete="current-password"></label>
+        <label class="f" data-en="Email">אימייל<input id="loginEmail" type="email" required autocomplete="email"></label>
+        <label class="f" data-en="Password">סיסמה<input id="loginPw" type="password" required autocomplete="current-password"></label>
         <div class="form-error" id="loginErr"></div>
-        <button class="btn" type="submit">כניסה</button>
+        <button class="btn" type="submit" data-en="Log in">כניסה</button>
       </form>
       <form id="regForm" style="display:none" onsubmit="doRegister(event)">
-        <label class="f">שם (כמו שהשותפים יראו אותו)<input id="regName" required maxlength="40"></label>
-        <label class="f">אימייל<input id="regEmail" type="email" required autocomplete="email"></label>
-        <label class="f">סיסמה (לפחות 6 תווים)<input id="regPw" type="password" required minlength="6" autocomplete="new-password"></label>
+        <label class="f" data-en="Name (as your roommates will see it)">שם (כמו שהשותפים יראו אותו)<input id="regName" required maxlength="40"></label>
+        <label class="f" data-en="Email">אימייל<input id="regEmail" type="email" required autocomplete="email"></label>
+        <label class="f" data-en="Password (at least 6 characters)">סיסמה (לפחות 6 תווים)<input id="regPw" type="password" required minlength="6" autocomplete="new-password"></label>
         <div class="form-error" id="regErr"></div>
-        <button class="btn" type="submit">יצירת חשבון</button>
+        <button class="btn" type="submit" data-en="Create account">יצירת חשבון</button>
       </form>
     </div>
   </div>
@@ -525,21 +536,21 @@
   <div class="center-wrap">
     <div class="auth-card">
       <div class="logo-dot" style="background:var(--brand); display:flex; align-items:center; justify-content:center; font-size:30px">🔑</div>
-      <h1>כמעט שם</h1>
+      <h1 data-en="Almost there">כמעט שם</h1>
       <div class="tagline" id="setupHello"></div>
       <form onsubmit="createHousehold(event)">
-        <label class="f">פותחים דירה חדשה — איך קוראים לה?<input id="hhName" placeholder='למשל: "רוטשילד 12"' maxlength="60"></label>
+        <label class="f" data-en="Start a new home — what's it called?">פותחים דירה חדשה — איך קוראים לה?<input id="hhName" placeholder='למשל: "רוטשילד 12"' data-en-placeholder='e.g. "12 Rothschild"' maxlength="60"></label>
         <div class="form-error" id="hhErr"></div>
-        <button class="btn" type="submit">יצירת דירה 🎉</button>
+        <button class="btn" type="submit" data-en="Create home 🎉">יצירת דירה 🎉</button>
       </form>
-      <div class="divider">או</div>
+      <div class="divider" data-en="or">או</div>
       <form onsubmit="joinHousehold(event)">
-        <label class="f">מצטרפים לדירה קיימת עם קוד הזמנה<input id="joinCode" placeholder="קוד בן 6 תווים" maxlength="6" style="direction:ltr; text-align:center; letter-spacing:5px; text-transform:uppercase"></label>
+        <label class="f" data-en="Join an existing home with an invite code">מצטרפים לדירה קיימת עם קוד הזמנה<input id="joinCode" placeholder="קוד בן 6 תווים" data-en-placeholder="6-character code" maxlength="6" style="direction:ltr; text-align:center; letter-spacing:5px; text-transform:uppercase"></label>
         <div class="form-error" id="joinErr"></div>
-        <button class="btn ghost" type="submit">הצטרפות</button>
+        <button class="btn ghost" type="submit" data-en="Join">הצטרפות</button>
       </form>
       <div class="hint" style="text-align:center; margin-top:18px">
-        <a href="#" onclick="doLogout(event)" style="color:var(--muted)">התנתקות</a>
+        <a href="#" onclick="doLogout(event)" style="color:var(--muted)" data-en="Log out">התנתקות</a>
       </div>
     </div>
   </div>
@@ -555,15 +566,15 @@
         <div class="house" id="heroHouse"></div>
       </div>
       <div style="display:flex; align-items:center; gap:8px">
-        <div class="month-nav" role="group" aria-label="בחירת חודש">
-          <button class="mn-arrow arr-right" onclick="shiftMonth(-1)" title="חודש קודם" aria-label="חודש קודם"></button>
+        <div class="month-nav" role="group" aria-label="בחירת חודש" data-en-aria="Choose month">
+          <button class="mn-arrow arr-right" id="mnPrev" onclick="shiftMonth(-1)" title="חודש קודם" data-en-title="Previous month" aria-label="חודש קודם" data-en-aria="Previous month"></button>
           <div class="label" id="monthLabel" aria-live="polite"></div>
-          <button class="mn-arrow arr-left" onclick="shiftMonth(1)" title="חודש הבא" aria-label="חודש הבא"></button>
+          <button class="mn-arrow arr-left" id="mnNext" onclick="shiftMonth(1)" title="חודש הבא" data-en-title="Next month" aria-label="חודש הבא" data-en-aria="Next month"></button>
         </div>
         <div class="bell-wrap">
-          <button class="bell" onclick="toggleNotifPanel(event)" title="התראות" aria-label="התראות" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">🔔<span id="bellBadge" class="bell-badge" style="display:none"></span></button>
-          <div class="notif-panel" id="notifPanel" role="region" aria-label="התראות">
-            <div class="notif-head">🔔 התראות</div>
+          <button class="bell" onclick="toggleNotifPanel(event)" title="התראות" data-en-title="Notifications" aria-label="התראות" data-en-aria="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">🔔<span id="bellBadge" class="bell-badge" style="display:none"></span></button>
+          <div class="notif-panel" id="notifPanel" role="region" aria-label="התראות" data-en-aria="Notifications">
+            <div class="notif-head" data-en="🔔 Notifications">🔔 התראות</div>
             <div id="notifList"></div>
           </div>
         </div>
@@ -573,55 +584,55 @@
   </div>
 </header>
 
-<nav class="tabs" id="tabs" aria-label="ניווט ראשי">
-  <button data-tab="dash" class="active" aria-current="page" onclick="switchTab('dash')"><span class="ico" aria-hidden="true">🏠</span><span>סקירה</span></button>
-  <button data-tab="expenses" onclick="switchTab('expenses')"><span class="ico">💸</span><span>הוצאות</span></button>
-  <button data-tab="personal" onclick="switchTab('personal')"><span class="ico">🔒</span><span>אישי</span></button>
-  <button data-tab="shopping" onclick="switchTab('shopping')"><span class="ico">🛒</span><span>קניות</span></button>
-  <button data-tab="budgets" class="tab-extra" onclick="switchTab('budgets')"><span class="ico">🎯</span><span>תקציבים</span></button>
-  <button data-tab="bills" class="tab-extra" onclick="switchTab('bills')"><span class="ico">🧾</span><span>חשבונות</span></button>
-  <button data-tab="chores" class="tab-extra" onclick="switchTab('chores')"><span class="ico">🧽</span><span>מטלות</span></button>
-  <button data-tab="settings" class="tab-extra" onclick="switchTab('settings')"><span class="ico">⚙️</span><span>הגדרות</span></button>
-  <button id="moreBtn" onclick="toggleMore(event)" aria-haspopup="true" aria-expanded="false" aria-controls="moreSheet"><span class="ico" aria-hidden="true">⋯</span><span>עוד</span></button>
+<nav class="tabs" id="tabs" aria-label="ניווט ראשי" data-en-aria="Main navigation">
+  <button data-tab="dash" class="active" aria-current="page" onclick="switchTab('dash')"><span class="ico" aria-hidden="true">🏠</span><span data-en="Overview">סקירה</span></button>
+  <button data-tab="expenses" onclick="switchTab('expenses')"><span class="ico">💸</span><span data-en="Expenses">הוצאות</span></button>
+  <button data-tab="personal" onclick="switchTab('personal')"><span class="ico">🔒</span><span data-en="Personal">אישי</span></button>
+  <button data-tab="shopping" onclick="switchTab('shopping')"><span class="ico">🛒</span><span data-en="Shopping">קניות</span></button>
+  <button data-tab="budgets" class="tab-extra" onclick="switchTab('budgets')"><span class="ico">🎯</span><span data-en="Budgets">תקציבים</span></button>
+  <button data-tab="bills" class="tab-extra" onclick="switchTab('bills')"><span class="ico">🧾</span><span data-en="Bills">חשבונות</span></button>
+  <button data-tab="chores" class="tab-extra" onclick="switchTab('chores')"><span class="ico">🧽</span><span data-en="Chores">מטלות</span></button>
+  <button data-tab="settings" class="tab-extra" onclick="switchTab('settings')"><span class="ico">⚙️</span><span data-en="Settings">הגדרות</span></button>
+  <button id="moreBtn" onclick="toggleMore(event)" aria-haspopup="true" aria-expanded="false" aria-controls="moreSheet"><span class="ico" aria-hidden="true">⋯</span><span data-en="More">עוד</span></button>
 </nav>
 <div class="sheet-back" onclick="toggleMore()"></div>
-<div class="sheet" id="moreSheet" role="menu" aria-label="לשוניות נוספות">
-  <button data-tab="budgets" onclick="switchTab('budgets')"><span class="ico">🎯</span><span>תקציבים</span></button>
-  <button data-tab="bills" onclick="switchTab('bills')"><span class="ico">🧾</span><span>חשבונות</span></button>
-  <button data-tab="chores" onclick="switchTab('chores')"><span class="ico">🧽</span><span>מטלות</span></button>
-  <button data-tab="settings" onclick="switchTab('settings')"><span class="ico">⚙️</span><span>הגדרות</span></button>
+<div class="sheet" id="moreSheet" role="menu" aria-label="לשוניות נוספות" data-en-aria="More tabs">
+  <button data-tab="budgets" onclick="switchTab('budgets')"><span class="ico">🎯</span><span data-en="Budgets">תקציבים</span></button>
+  <button data-tab="bills" onclick="switchTab('bills')"><span class="ico">🧾</span><span data-en="Bills">חשבונות</span></button>
+  <button data-tab="chores" onclick="switchTab('chores')"><span class="ico">🧽</span><span data-en="Chores">מטלות</span></button>
+  <button data-tab="settings" onclick="switchTab('settings')"><span class="ico">⚙️</span><span data-en="Settings">הגדרות</span></button>
 </div>
 
 <main id="mainContent" tabindex="-1">
   <section class="tab active" id="tab-dash">
     <div class="tiles" id="dashTiles"></div>
     <div class="card">
-      <h2>📌 לוח המודעות <span class="note">עדכונים מהירים בין השותפים — נעוצות תמיד למעלה</span></h2>
+      <h2><span data-en="📌 Bulletin board">📌 לוח המודעות</span> <span class="note" data-en="quick updates between roommates — pinned stay on top">עדכונים מהירים בין השותפים — נעוצות תמיד למעלה</span></h2>
       <form class="bulletin-form" onsubmit="addNote(event)">
-        <input id="noteContent" required maxlength="300" placeholder='למשל: "הטכנאי מגיע מחר בין 10:00-12:00"'>
-        <label class="pin-check"><input type="checkbox" id="notePin" class="check" style="width:17px;height:17px"> 📌 לנעוץ</label>
-        <button class="btn" type="submit">פרסום</button>
+        <input id="noteContent" required maxlength="300" placeholder='למשל: "הטכנאי מגיע מחר בין 10:00-12:00"' data-en-placeholder='e.g. "Technician coming tomorrow 10:00-12:00"'>
+        <label class="pin-check" data-en=" 📌 Pin"><input type="checkbox" id="notePin" class="check" style="width:17px;height:17px"> 📌 לנעוץ</label>
+        <button class="btn" type="submit" data-en="Post">פרסום</button>
       </form>
       <div class="notes-grid" id="notesGrid"></div>
     </div>
     <div class="two-col">
       <div class="card">
-        <h2>🎯 תקציב מול ביצוע <span class="note" id="dashBudgetMonth"></span></h2>
+        <h2><span data-en="🎯 Budget vs. actual">🎯 תקציב מול ביצוע</span> <span class="note" id="dashBudgetMonth"></span></h2>
         <div id="dashMeters"></div>
       </div>
       <div class="card">
-        <h2>📊 ההוצאות שלי — 6 חודשים אחרונים</h2>
+        <h2 data-en="📊 My spending — last 6 months">📊 ההוצאות שלי — 6 חודשים אחרונים</h2>
         <div class="chart" id="dashChart"></div>
         <div class="chart-x" id="dashChartX"></div>
       </div>
     </div>
     <div class="two-col">
       <div class="card">
-        <h2>🧾 חשבונות קרובים</h2>
+        <h2 data-en="🧾 Upcoming bills">🧾 חשבונות קרובים</h2>
         <div id="dashBills"></div>
       </div>
       <div class="card">
-        <h2>🛒 דחוף לקנות</h2>
+        <h2 data-en="🛒 Urgent to buy">🛒 דחוף לקנות</h2>
         <div id="dashShopping"></div>
       </div>
     </div>
@@ -629,78 +640,78 @@
 
   <section class="tab" id="tab-expenses">
     <div class="card">
-      <h2>💸 הוצאה חדשה</h2>
+      <h2 data-en="💸 New expense">💸 הוצאה חדשה</h2>
       <form class="grid" onsubmit="addExpense(event)">
-        <label class="f">תיאור<input id="exDesc" required maxlength="120" placeholder="למשל: קניות בסופר"></label>
-        <label class="f">סכום (₪)<input id="exAmount" type="number" step="0.01" min="0.01" required oninput="renderCustomShares()"></label>
-        <label class="f">קטגוריה<select id="exCat"></select></label>
-        <label class="f">תאריך<input id="exDate" type="date" required></label>
-        <label class="f">מי שילם/ה<select id="exPayer"></select></label>
-        <label class="f">חלוקה
+        <label class="f" data-en="Description">תיאור<input id="exDesc" required maxlength="120" placeholder="למשל: קניות בסופר" data-en-placeholder="e.g. groceries"></label>
+        <label class="f" data-en="Amount (₪)">סכום (₪)<input id="exAmount" type="number" step="0.01" min="0.01" required oninput="renderCustomShares()"></label>
+        <label class="f" data-en="Category">קטגוריה<select id="exCat"></select></label>
+        <label class="f" data-en="Date">תאריך<input id="exDate" type="date" required></label>
+        <label class="f" data-en="Paid by">מי שילם/ה<select id="exPayer"></select></label>
+        <label class="f" data-en="Split">חלוקה
           <select id="exSplit" onchange="renderCustomShares()">
-            <option value="equal">שווה בשווה בין כולם</option>
-            <option value="custom">חלוקה מותאמת</option>
-            <option value="personal">אישי (בלי חלוקה)</option>
+            <option value="equal" data-en="Equally between everyone">שווה בשווה בין כולם</option>
+            <option value="custom" data-en="Custom split">חלוקה מותאמת</option>
+            <option value="personal" data-en="Personal (no split)">אישי (בלי חלוקה)</option>
           </select>
         </label>
-        <button class="btn" type="submit">הוספה</button>
+        <button class="btn" type="submit" data-en="Add">הוספה</button>
       </form>
       <div class="inline-panel" id="customShares" style="display:none"></div>
     </div>
 
     <div class="card">
-      <h2>🤝 התחשבנות <span class="note">מאזן עד סוף החודש המוצג · חוב שלא נסגר מתגלגל קדימה</span></h2>
+      <h2><span data-en="🤝 Settle up">🤝 התחשבנות</span> <span class="note" data-en="balance through the shown month · unsettled debt rolls forward">מאזן עד סוף החודש המוצג · חוב שלא נסגר מתגלגל קדימה</span></h2>
       <div id="balancesBox"></div>
       <div id="transfersBox"></div>
       <div id="settleHistory"></div>
     </div>
 
     <div class="card">
-      <h2>📋 הוצאות החודש <span class="note" id="expMonthNote"></span></h2>
+      <h2><span data-en="📋 This month's expenses">📋 הוצאות החודש</span> <span class="note" id="expMonthNote"></span></h2>
       <div style="overflow-x:auto">
         <table>
-          <thead><tr><th>תאריך</th><th>תיאור</th><th>קטגוריה</th><th>סכום</th><th>שילם/ה</th><th>חלוקה</th><th></th></tr></thead>
+          <thead><tr><th data-en="Date">תאריך</th><th data-en="Description">תיאור</th><th data-en="Category">קטגוריה</th><th data-en="Amount">סכום</th><th data-en="Paid by">שילם/ה</th><th data-en="Split">חלוקה</th><th></th></tr></thead>
           <tbody id="expTable"></tbody>
         </table>
       </div>
-      <div class="empty" id="expEmpty" style="display:none"><span class="e">🌱</span>אין עדיין הוצאות בחודש הזה — הוסיפו את הראשונה למעלה</div>
+      <div class="empty" id="expEmpty" style="display:none"><span class="e">🌱</span><span data-en="No expenses this month yet — add the first one above">אין עדיין הוצאות בחודש הזה — הוסיפו את הראשונה למעלה</span></div>
     </div>
   </section>
 
   <section class="tab" id="tab-personal">
     <div class="tiles" id="pTiles"></div>
     <div class="card">
-      <h2>🎯 התקציב האישי שלי <span class="note">🔒 כל מה שבלשונית הזאת גלוי רק לך</span></h2>
+      <h2><span data-en="🎯 My personal budget">🎯 התקציב האישי שלי</span> <span class="note" data-en="🔒 everything on this tab is visible only to you">🔒 כל מה שבלשונית הזאת גלוי רק לך</span></h2>
       <div class="meter-row" style="grid-template-columns:110px 1fr auto">
-        <input type="number" id="pBudget" min="0" step="50" onchange="setPersonalBudget(this.value)" style="padding:6px 10px" title="תקציב אישי חודשי" aria-label="תקציב אישי חודשי בשקלים">
+        <input type="number" id="pBudget" min="0" step="50" onchange="setPersonalBudget(this.value)" style="padding:6px 10px" title="תקציב אישי חודשי" data-en-title="Monthly personal budget" aria-label="תקציב אישי חודשי בשקלים" data-en-aria="Monthly personal budget in shekels">
         <div class="meter" id="pMeter"><div class="meter-fill" id="pMeterFill"></div></div>
         <div class="nums" id="pMeterNums"></div>
       </div>
       <div class="hint" id="pMeterHint">התקציב נמדד מול סך ההוצאה שלך החודש: החלק שלך בהוצאות המשותפות + ההוצאות הפרטיות. 0 = בלי תקציב.</div>
     </div>
     <div class="card">
-      <h2>➕ הוצאה פרטית חדשה</h2>
+      <h2 data-en="➕ New private expense">➕ הוצאה פרטית חדשה</h2>
       <form class="grid" onsubmit="addPrivate(event)">
-        <label class="f">תיאור<input id="pDesc" required maxlength="120" placeholder="למשל: מנוי חדר כושר"></label>
-        <label class="f">סכום (₪)<input id="pAmount" type="number" step="0.01" min="0.01" required></label>
-        <label class="f">קטגוריה (לא חובה)<input id="pCat" maxlength="40" list="pCatList" placeholder="למשל: ביגוד"><datalist id="pCatList"></datalist></label>
-        <label class="f">תאריך<input id="pDate" type="date" required></label>
-        <button class="btn" type="submit">הוספה</button>
+        <label class="f" data-en="Description">תיאור<input id="pDesc" required maxlength="120" placeholder="למשל: מנוי חדר כושר" data-en-placeholder="e.g. gym membership"></label>
+        <label class="f" data-en="Amount (₪)">סכום (₪)<input id="pAmount" type="number" step="0.01" min="0.01" required></label>
+        <label class="f" data-en="Category (optional)">קטגוריה (לא חובה)<input id="pCat" maxlength="40" list="pCatList" placeholder="למשל: ביגוד" data-en-placeholder="e.g. clothing"><datalist id="pCatList"></datalist></label>
+        <label class="f" data-en="Date">תאריך<input id="pDate" type="date" required></label>
+        <button class="btn" type="submit" data-en="Add">הוספה</button>
       </form>
     </div>
     <div class="two-col">
       <div class="card">
-        <h2>📒 ההוצאות הפרטיות שלי <span class="note" id="pMonthNote"></span></h2>
+        <h2><span data-en="📒 My private expenses">📒 ההוצאות הפרטיות שלי</span> <span class="note" id="pMonthNote"></span></h2>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>תאריך</th><th>תיאור</th><th>קטגוריה</th><th>סכום</th><th></th></tr></thead>
+            <thead><tr><th data-en="Date">תאריך</th><th data-en="Description">תיאור</th><th data-en="Category">קטגוריה</th><th data-en="Amount">סכום</th><th></th></tr></thead>
             <tbody id="pTable"></tbody>
           </table>
         </div>
-        <div class="empty" id="pEmpty" style="display:none"><span class="e">🤫</span>אין הוצאות פרטיות בחודש הזה</div>
+        <div class="empty" id="pEmpty" style="display:none"><span class="e">🤫</span><span data-en="No private expenses this month">אין הוצאות פרטיות בחודש הזה</span></div>
       </div>
       <div class="card">
-        <h2>📈 סך ההוצאה שלי — 6 חודשים <span class="note">משותפות (החלק שלך) + פרטיות</span></h2>
+        <h2><span data-en="📈 My total spend — 6 months">📈 סך ההוצאה שלי — 6 חודשים</span> <span class="note" data-en="shared (your part) + private">משותפות (החלק שלך) + פרטיות</span></h2>
         <div class="chart" id="pChart"></div>
         <div class="chart-x" id="pChartX"></div>
       </div>
@@ -709,49 +720,49 @@
 
   <section class="tab" id="tab-budgets">
     <div class="card">
-      <h2>🎯 תקציב חודשי לפי קטגוריה <span class="note">נשמר אוטומטית</span></h2>
+      <h2><span data-en="🎯 Monthly budget by category">🎯 תקציב חודשי לפי קטגוריה</span> <span class="note" data-en="saved automatically">נשמר אוטומטית</span></h2>
       <div id="budgetList"></div>
       <form class="grid" style="margin-top:14px" onsubmit="addCategory(event)">
-        <label class="f">קטגוריה חדשה<input id="newCatName" required maxlength="40" placeholder="שם הקטגוריה"></label>
-        <label class="f">תקציב (₪)<input id="newCatBudget" type="number" min="0" step="1" value="0"></label>
-        <button class="btn ghost" type="submit">הוספת קטגוריה</button>
+        <label class="f" data-en="New category">קטגוריה חדשה<input id="newCatName" required maxlength="40" placeholder="שם הקטגוריה" data-en-placeholder="Category name"></label>
+        <label class="f" data-en="Budget (₪)">תקציב (₪)<input id="newCatBudget" type="number" min="0" step="1" value="0"></label>
+        <button class="btn ghost" type="submit" data-en="Add category">הוספת קטגוריה</button>
       </form>
     </div>
   </section>
 
   <section class="tab" id="tab-shopping">
     <div class="card">
-      <h2>🍝 ממתכון לרשימת קניות <span class="note">כתבו מה בא לכם לאכול — נכין את המצרכים</span></h2>
+      <h2><span data-en="🍝 Recipe to shopping list">🍝 ממתכון לרשימת קניות</span> <span class="note" data-en="tell us what you feel like eating — we'll prep the ingredients">כתבו מה בא לכם לאכול — נכין את המצרכים</span></h2>
       <form class="grid" onsubmit="findRecipe(event)">
-        <label class="f" style="grid-column: 1 / -2">מה בא לכם לאכול?<input id="recipeDish" required maxlength="80" placeholder='למשל: "פסטה בולונז" או "בא לי שקשוקה"'></label>
-        <button class="btn" type="submit" id="recipeBtn">מצאו מצרכים</button>
+        <label class="f" style="grid-column: 1 / -2" data-en="What do you feel like eating?">מה בא לכם לאכול?<input id="recipeDish" required maxlength="80" placeholder='למשל: "פסטה בולונז" או "בא לי שקשוקה"' data-en-placeholder='e.g. "pasta bolognese" or "shakshuka"'></label>
+        <button class="btn" type="submit" id="recipeBtn" data-en="Find ingredients">מצאו מצרכים</button>
       </form>
       <div class="inline-panel" id="recipeResult" style="display:none"></div>
     </div>
     <div class="card">
-      <h2>🛒 רשימת קניות משותפת</h2>
+      <h2 data-en="🛒 Shared shopping list">🛒 רשימת קניות משותפת</h2>
       <form class="grid" onsubmit="addShopItem(event)">
-        <label class="f">מה צריך?<input id="shopName" required maxlength="80" placeholder="למשל: חלב"></label>
-        <label class="f">הערה / כמות<input id="shopNote" maxlength="80" placeholder="לא חובה"></label>
-        <label class="f" style="flex-direction:row; align-items:center; gap:6px; padding-bottom:11px">
+        <label class="f" data-en="What's needed?">מה צריך?<input id="shopName" required maxlength="80" placeholder="למשל: חלב" data-en-placeholder="e.g. milk"></label>
+        <label class="f" data-en="Note / quantity">הערה / כמות<input id="shopNote" maxlength="80" placeholder="לא חובה" data-en-placeholder="optional"></label>
+        <label class="f" style="flex-direction:row; align-items:center; gap:6px; padding-bottom:11px" data-en=" Urgent">
           <input type="checkbox" id="shopUrgent" class="check" style="width:18px;height:18px"> דחוף
         </label>
-        <button class="btn" type="submit">הוספה</button>
+        <button class="btn" type="submit" data-en="Add">הוספה</button>
       </form>
     </div>
     <div class="card">
-      <h2>📝 הרשימה <span class="note" id="shopCount"></span></h2>
+      <h2><span data-en="📝 The list">📝 הרשימה</span> <span class="note" id="shopCount"></span></h2>
       <div id="shopList"></div>
       <div id="shopClearWrap" style="margin-top:10px; display:none">
-        <button class="mini-btn" onclick="toggleShopPanel()">✓ סיום קנייה — ניקוי מסומנים</button>
+        <button class="mini-btn" onclick="toggleShopPanel()" data-en="✓ Done shopping — clear checked items">✓ סיום קנייה — ניקוי מסומנים</button>
         <div class="inline-panel" id="shopPanel" style="display:none">
-          <div style="font-size:13.5px; margin-bottom:8px">רוצים לרשום את הקנייה גם כהוצאה (מתחלקת שווה בשווה)?</div>
+          <div style="font-size:13.5px; margin-bottom:8px" data-en="Also record this trip as an expense (split equally)?">רוצים לרשום את הקנייה גם כהוצאה (מתחלקת שווה בשווה)?</div>
           <form class="grid" onsubmit="finishShopping(event, true)">
-            <label class="f">סכום כולל (₪)<input id="shopTotal" type="number" step="0.01" min="0.01"></label>
-            <label class="f">מי שילם/ה<select id="shopPayer"></select></label>
-            <label class="f">קטגוריה<select id="shopCat"></select></label>
-            <button class="btn" type="submit">רישום הוצאה + ניקוי</button>
-            <button class="btn ghost" type="button" onclick="finishShopping(event, false)">רק ניקוי, בלי הוצאה</button>
+            <label class="f" data-en="Total amount (₪)">סכום כולל (₪)<input id="shopTotal" type="number" step="0.01" min="0.01"></label>
+            <label class="f" data-en="Paid by">מי שילם/ה<select id="shopPayer"></select></label>
+            <label class="f" data-en="Category">קטגוריה<select id="shopCat"></select></label>
+            <button class="btn" type="submit" data-en="Record expense + clear">רישום הוצאה + ניקוי</button>
+            <button class="btn ghost" type="button" onclick="finishShopping(event, false)" data-en="Just clear, no expense">רק ניקוי, בלי הוצאה</button>
           </form>
         </div>
       </div>
@@ -760,58 +771,58 @@
 
   <section class="tab" id="tab-bills">
     <div class="card">
-      <h2>🧾 חשבונות קבועים <span class="note" id="billsMonthNote"></span></h2>
+      <h2><span data-en="🧾 Recurring bills">🧾 חשבונות קבועים</span> <span class="note" id="billsMonthNote"></span></h2>
       <div id="billsList"></div>
-      <div class="hint">סימון "שולם" רושם אוטומטית הוצאה שמתחלקת שווה בשווה בין כל חברי הדירה.</div>
+      <div class="hint" data-en='Marking a bill "paid" automatically records an expense split equally between all roommates.'>סימון "שולם" רושם אוטומטית הוצאה שמתחלקת שווה בשווה בין כל חברי הדירה.</div>
     </div>
     <div class="card">
-      <h2>➕ חשבון קבוע חדש</h2>
+      <h2 data-en="➕ New recurring bill">➕ חשבון קבוע חדש</h2>
       <form class="grid" onsubmit="addBill(event)">
-        <label class="f">שם<input id="billName" required maxlength="60" placeholder="למשל: חשמל"></label>
-        <label class="f">סכום משוער (₪)<input id="billAmount" type="number" step="0.01" min="0" required></label>
-        <label class="f">יום חיוב בחודש<input id="billDue" type="number" min="1" max="31" value="1" required></label>
-        <label class="f">קטגוריה<select id="billCat"></select></label>
-        <button class="btn ghost" type="submit">הוספה</button>
+        <label class="f" data-en="Name">שם<input id="billName" required maxlength="60" placeholder="למשל: חשמל" data-en-placeholder="e.g. electricity"></label>
+        <label class="f" data-en="Estimated amount (₪)">סכום משוער (₪)<input id="billAmount" type="number" step="0.01" min="0" required></label>
+        <label class="f" data-en="Billing day of month">יום חיוב בחודש<input id="billDue" type="number" min="1" max="31" value="1" required></label>
+        <label class="f" data-en="Category">קטגוריה<select id="billCat"></select></label>
+        <button class="btn ghost" type="submit" data-en="Add">הוספה</button>
       </form>
     </div>
   </section>
 
   <section class="tab" id="tab-chores">
     <div class="card">
-      <h2>🧽 מטלות הבית <span class="note">"בוצע" מעביר את התור לבא/ה בתור</span></h2>
+      <h2><span data-en="🧽 House chores">🧽 מטלות הבית</span> <span class="note" data-en='"Done" passes the turn to the next roommate'>"בוצע" מעביר את התור לבא/ה בתור</span></h2>
       <div id="choresList"></div>
     </div>
     <div class="card">
-      <h2>➕ מטלה חדשה</h2>
+      <h2 data-en="➕ New chore">➕ מטלה חדשה</h2>
       <form class="grid" onsubmit="addChore(event)">
-        <label class="f">שם המטלה<input id="choreName" required maxlength="60" placeholder="למשל: שטיפת רצפה"></label>
-        <label class="f">תדירות<input id="choreFreq" maxlength="30" placeholder="שבועי" value="שבועי"></label>
-        <label class="f">תור ראשון של<select id="choreWho"></select></label>
-        <button class="btn ghost" type="submit">הוספה</button>
+        <label class="f" data-en="Chore name">שם המטלה<input id="choreName" required maxlength="60" placeholder="למשל: שטיפת רצפה" data-en-placeholder="e.g. mop the floor"></label>
+        <label class="f" data-en="Frequency">תדירות<input id="choreFreq" maxlength="30" placeholder="שבועי" data-en-placeholder="weekly" value="שבועי"></label>
+        <label class="f" data-en="First turn goes to">תור ראשון של<select id="choreWho"></select></label>
+        <button class="btn ghost" type="submit" data-en="Add">הוספה</button>
       </form>
     </div>
   </section>
 
   <section class="tab" id="tab-settings">
     <div class="card">
-      <h2>🏠 הדירה</h2>
+      <h2 data-en="🏠 The home">🏠 הדירה</h2>
       <div id="hhInfo"></div>
       <div class="invite-code" id="inviteCode"></div>
       <div class="row-actions">
-        <button class="btn ghost" onclick="copyInvite()">📋 העתקת קוד ההזמנה</button>
+        <button class="btn ghost" onclick="copyInvite()" data-en="📋 Copy invite code">📋 העתקת קוד ההזמנה</button>
       </div>
-      <div class="hint">שותף/ה חדש/ה? שיירשמו לאפליקציה ויזינו את הקוד — וכל הנתונים משותפים מיד.</div>
+      <div class="hint" data-en="New roommate? Have them sign up and enter this code — everything is shared instantly.">שותף/ה חדש/ה? שיירשמו לאפליקציה ויזינו את הקוד — וכל הנתונים משותפים מיד.</div>
     </div>
     <div class="card">
-      <h2>👥 חברי הדירה</h2>
+      <h2 data-en="👥 Roommates">👥 חברי הדירה</h2>
       <div id="membersList"></div>
     </div>
     <div class="card">
-      <h2>👤 החשבון שלי</h2>
+      <h2 data-en="👤 My account">👤 החשבון שלי</h2>
       <div id="myInfo" style="font-size:13.5px; margin-bottom:12px"></div>
       <div class="row-actions">
-        <a class="btn ghost" style="text-decoration:none" href="/api/export" download>⬇ ייצוא גיבוי (JSON)</a>
-        <button class="btn ghost" onclick="doLogout(event)">התנתקות</button>
+        <a class="btn ghost" style="text-decoration:none" href="/api/export" download data-en="⬇ Export backup (JSON)">⬇ ייצוא גיבוי (JSON)</a>
+        <button class="btn ghost" onclick="doLogout(event)" data-en="Log out">התנתקות</button>
       </div>
     </div>
   </section>
@@ -835,23 +846,24 @@ async function api(path, method = "GET", data = null){
   let payload = {};
   try{ payload = await res.json(); }catch(e){}
   if(res.status === 401 && path !== "/login"){ showScreen("auth"); throw new Error("auth"); }
-  if(res.status === 409){ await boot(); throw new Error(payload.error || "אין דירה"); }
-  if(!res.ok) throw new Error(payload.error || "משהו השתבש, נסו שוב");
+  if(res.status === 409){ await boot(); throw new Error(payload.error || t("אין דירה", "No home yet")); }
+  if(!res.ok) throw new Error(payload.error || t("משהו השתבש, נסו שוב", "Something went wrong, try again"));
   return payload;
 }
 
 function toast(msg, type = "error"){
-  const t = document.getElementById("toast");
-  t.textContent = (type === "success" ? "✓ " : type === "error" ? "⚠ " : "") + msg;
-  t.style.background = type === "success" ? "var(--good-text)" : "var(--ink)";
-  t.style.color = type === "success" ? "#fff" : "var(--bg)";
-  t.classList.add("show");
-  clearTimeout(t._h);
-  t._h = setTimeout(()=>t.classList.remove("show"), 3200);
+  const el = document.getElementById("toast");
+  el.textContent = (type === "success" ? "✓ " : type === "error" ? "⚠ " : "") + msg;
+  el.style.background = type === "success" ? "var(--good-text)" : "var(--ink)";
+  el.style.color = type === "success" ? "#fff" : "var(--bg)";
+  el.classList.add("show");
+  clearTimeout(el._h);
+  el._h = setTimeout(()=>el.classList.remove("show"), 3200);
 }
 
 /* דיאלוג אישור מעוצב (מחליף את confirm של הדפדפן) */
-function uiConfirm(msg, okLabel = "אישור", danger = false){
+function uiConfirm(msg, okLabel = null, danger = false){
+  okLabel = okLabel ?? t("אישור", "OK");
   return new Promise(resolve => {
     const back = document.getElementById("modalBack");
     const ok = document.getElementById("modalOk");
@@ -892,12 +904,21 @@ async function act(fn){
 
 /* ================= helpers ================= */
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const ILS = new Intl.NumberFormat("he-IL",{style:"currency",currency:"ILS",minimumFractionDigits:0,maximumFractionDigits:2});
+
+/* ---- i18n: Hebrew (default) / English. t(he, en) picks by current LANG. ---- */
+let LANG = localStorage.getItem("kaza-lang") === "en" ? "en" : "he";
+const t = (he, en) => LANG === "he" ? he : en;
+const LOCALE = () => LANG === "he" ? "he-IL" : "en-GB";
+let ILS = null;
+function rebuildFormatters(){
+  ILS = new Intl.NumberFormat(LOCALE(),{style:"currency",currency:"ILS",minimumFractionDigits:0,maximumFractionDigits:2});
+}
+rebuildFormatters();
 const fmt = n => ILS.format(n||0);
 const memberName = id => { const m = (S?.members||[]).find(m=>m.id===id); return m ? esc(m.name) : "?"; };
 function monthLabel(ym){
   const [y,m] = ym.split("-").map(Number);
-  return new Date(y, m-1, 1).toLocaleDateString("he-IL",{month:"long", year:"numeric"});
+  return new Date(y, m-1, 1).toLocaleDateString(LOCALE(),{month:"long", year:"numeric"});
 }
 function addMonths(ym, n){
   const [y,m] = ym.split("-").map(Number);
@@ -934,10 +955,10 @@ function catEmoji(name = ""){
 }
 function greeting(){
   const h = new Date().getHours();
-  if(h >= 5 && h < 12)  return "בוקר טוב";
-  if(h >= 12 && h < 17) return "צהריים טובים";
-  if(h >= 17 && h < 22) return "ערב טוב";
-  return "לילה טוב";
+  if(h >= 5 && h < 12)  return t("בוקר טוב", "Good morning");
+  if(h >= 12 && h < 17) return t("צהריים טובים", "Good afternoon");
+  if(h >= 17 && h < 22) return t("ערב טוב", "Good evening");
+  return t("לילה טוב", "Good night");
 }
 const GREET_EMOJI = () => { const h = new Date().getHours(); return h>=5&&h<12 ? "☀️" : h>=12&&h<17 ? "🌤️" : h>=17&&h<22 ? "🌆" : "🌙"; };
 
@@ -951,7 +972,9 @@ async function boot(){
   try{
     const me = await api("/me");
     if(!me.household){
-      document.getElementById("setupHello").textContent = `היי ${me.user.name}! עוד צעד אחד — מחברים אותך לדירה.`;
+      document.getElementById("setupHello").textContent =
+        t(`היי ${me.user.name}! עוד צעד אחד — מחברים אותך לדירה.`,
+          `Hi ${me.user.name}! One more step — let's connect you to a home.`);
       showScreen("setup");
     } else {
       showScreen("app");
@@ -1033,7 +1056,7 @@ function renderCustomShares(){
   wrap.style.display = "";
   const amount = parseFloat(document.getElementById("exAmount").value) || 0;
   const even = S.members.length ? Math.round(amount / S.members.length * 100) / 100 : 0;
-  wrap.innerHTML = `<div style="font-size:13px; margin-bottom:6px">כמה מההוצאה "שייך" לכל אחד/ת:</div>
+  wrap.innerHTML = `<div style="font-size:13px; margin-bottom:6px">${t('כמה מההוצאה "שייך" לכל אחד/ת:', "How much of this expense belongs to each person:")}</div>
     <div class="row-actions" style="align-items:end">` +
     S.members.map(m=>`<label class="f" style="max-width:130px">${esc(m.name)}
       <input type="number" step="0.01" min="0" class="share-input" data-uid="${m.id}" value="${even}" oninput="updateShareRest()"></label>`).join("") +
@@ -1046,8 +1069,8 @@ function updateShareRest(){
   const rest = Math.round((amount-sum)*100)/100;
   const el = document.getElementById("shareRest");
   if(el) el.innerHTML = Math.abs(rest) < 0.01
-    ? `<span style="color:var(--good-text)">✓ החלוקה מסתכמת בדיוק לסכום</span>`
-    : `נותר לחלק: <b>${fmt(rest)}</b>`;
+    ? `<span style="color:var(--good-text)">${t("✓ החלוקה מסתכמת בדיוק לסכום", "✓ The split adds up exactly")}</span>`
+    : `${t("נותר לחלק:", "Left to allocate:")} <b>${fmt(rest)}</b>`;
 }
 function addExpense(ev){
   ev.preventDefault();
@@ -1070,16 +1093,16 @@ function addExpense(ev){
     ev.target.reset();
     exDate.value = localToday();
     renderCustomShares();
-    toast("ההוצאה נוספה", "success");
+    toast(t("ההוצאה נוספה", "Expense added"), "success");
   });
 }
-const deleteExpense = async id => { if(await uiConfirm("למחוק את ההוצאה?","מחיקה",true)) act(()=>api("/expenses/"+id,"DELETE")); };
-const splitLabel = t => ({equal:"שווה בשווה", personal:"אישי", custom:"מותאם"}[t] || t);
+const deleteExpense = async id => { if(await uiConfirm(t("למחוק את ההוצאה?","Delete this expense?"),t("מחיקה","Delete"),true)) act(()=>api("/expenses/"+id,"DELETE")); };
+const splitLabel = s => ({equal:t("שווה בשווה","Equal"), personal:t("אישי","Personal"), custom:t("מותאם","Custom")}[s] || s);
 const recordTransfer = async (from_id, to_id, amount) => {
-  if(await uiConfirm(`לרשום העברה של ${fmt(amount)}?`,"כן, הועבר"))
+  if(await uiConfirm(t(`לרשום העברה של ${fmt(amount)}?`,`Record a transfer of ${fmt(amount)}?`),t("כן, הועבר","Yes, sent")))
     act(()=>api("/settlements","POST",{from_id, to_id, amount, date:localToday()}));
 };
-const deleteSettlement = async id => { if(await uiConfirm("למחוק את רישום ההעברה?","מחיקה",true)) act(()=>api("/settlements/"+id,"DELETE")); };
+const deleteSettlement = async id => { if(await uiConfirm(t("למחוק את רישום ההעברה?","Delete this transfer record?"),t("מחיקה","Delete"),true)) act(()=>api("/settlements/"+id,"DELETE")); };
 
 /* ================= personal (private) ================= */
 function addPrivate(ev){
@@ -1089,10 +1112,10 @@ function addPrivate(ev){
       category:pCat.value, date:pDate.value});
     ev.target.reset();
     document.getElementById("pDate").value = localToday();
-    toast("נוסף ליומן הפרטי שלך", "success");
+    toast(t("נוסף ליומן הפרטי שלך", "Added to your private ledger"), "success");
   });
 }
-const deletePrivate = async id => { if(await uiConfirm("למחוק את ההוצאה הפרטית?","מחיקה",true)) act(()=>api("/personal/"+id,"DELETE")); };
+const deletePrivate = async id => { if(await uiConfirm(t("למחוק את ההוצאה הפרטית?","Delete this private expense?"),t("מחיקה","Delete"),true)) act(()=>api("/personal/"+id,"DELETE")); };
 const setPersonalBudget = v => act(()=>api("/me/budget","POST",{budget:parseFloat(v)||0}));
 
 function renderPersonal(){
@@ -1100,22 +1123,22 @@ function renderPersonal(){
   const combined = Math.round((P.private_total + P.share_total)*100)/100;
 
   const prev = P.chart.length>1 ? P.chart[P.chart.length-2].total : 0;
-  let deltaHTML = `<div class="delta">אין נתונים לחודש קודם</div>`;
+  let deltaHTML = `<div class="delta">${t("אין נתונים לחודש קודם", "No data for last month")}</div>`;
   if(prev>0){
     const d = combined-prev, pct = Math.round(Math.abs(d)/prev*100);
     deltaHTML = d>=0
-      ? `<div class="delta up-bad">▲ ${pct}%+ מהחודש הקודם</div>`
-      : `<div class="delta down-good">▼ ${pct}%- מהחודש הקודם</div>`;
+      ? `<div class="delta up-bad">${t(`▲ ${pct}%+ מהחודש הקודם`, `▲ ${pct}% up from last month`)}</div>`
+      : `<div class="delta down-good">${t(`▼ ${pct}%- מהחודש הקודם`, `▼ ${pct}% down from last month`)}</div>`;
   }
   document.getElementById("pTiles").innerHTML = `
-    <div class="tile"><div class="label">💼 סך ההוצאה שלי · ${monthLabel(viewMonth)}</div>
+    <div class="tile"><div class="label">${t("💼 סך ההוצאה שלי", "💼 My total spend")} · ${monthLabel(viewMonth)}</div>
       <div class="value">${fmt(combined)}</div>${deltaHTML}</div>
-    <div class="tile"><div class="label">🤝 החלק שלי במשותפות</div>
+    <div class="tile"><div class="label">${t("🤝 החלק שלי במשותפות", "🤝 My part of shared")}</div>
       <div class="value">${fmt(P.share_total)}</div>
-      <div class="delta">לפי החלוקות בלשונית הוצאות</div></div>
-    <div class="tile"><div class="label">🔒 הוצאות פרטיות</div>
+      <div class="delta">${t("לפי החלוקות בלשונית הוצאות", "per the splits on the Expenses tab")}</div></div>
+    <div class="tile"><div class="label">${t("🔒 הוצאות פרטיות", "🔒 Private expenses")}</div>
       <div class="value">${fmt(P.private_total)}</div>
-      <div class="delta">רק את/ה רואה אותן</div></div>`;
+      <div class="delta">${t("רק את/ה רואה אותן", "only you can see them")}</div></div>`;
 
   const budgetInput = document.getElementById("pBudget");
   if(document.activeElement !== budgetInput) budgetInput.value = P.budget;
@@ -1124,9 +1147,10 @@ function renderPersonal(){
   document.getElementById("pMeterFill").style.width = Math.min(100, r*100) + "%";
   document.getElementById("pMeterNums").textContent = P.budget>0 ? `${fmt(combined)} / ${fmt(P.budget)}` : "—";
   document.getElementById("pMeterHint").innerHTML =
-    (r>1 ? `<span class="status-note over">❗ חריגה מהתקציב האישי</span> · ` :
-     r>=0.85 ? `<span class="status-note warn">⚠ מתקרב לתקרה</span> · ` : "") +
-    "התקציב נמדד מול סך ההוצאה שלך החודש: החלק שלך בהוצאות המשותפות + ההוצאות הפרטיות. 0 = בלי תקציב.";
+    (r>1 ? `<span class="status-note over">${t("❗ חריגה מהתקציב האישי", "❗ Over your personal budget")}</span> · ` :
+     r>=0.85 ? `<span class="status-note warn">${t("⚠ מתקרב לתקרה", "⚠ Nearing the cap")}</span> · ` : "") +
+    t("התקציב נמדד מול סך ההוצאה שלך החודש: החלק שלך בהוצאות המשותפות + ההוצאות הפרטיות. 0 = בלי תקציב.",
+      "Measured against your total spend this month: your part of shared expenses + private ones. 0 = no budget.");
 
   document.getElementById("pMonthNote").textContent = "· " + monthLabel(viewMonth);
   document.getElementById("pTable").innerHTML = P.expenses.map(p=>`<tr>
@@ -1134,7 +1158,7 @@ function renderPersonal(){
     <td>${esc(p.descr)}</td>
     <td>${p.category?`<span class="badge">${catEmoji(p.category)} ${esc(p.category)}</span>`:""}</td>
     <td class="num"><b>${fmt(p.amount)}</b></td>
-    <td><button class="mini-btn danger" onclick="deletePrivate(${p.id})" aria-label="מחיקת ההוצאה הפרטית ${esc(p.descr)}">✕</button></td>
+    <td><button class="mini-btn danger" onclick="deletePrivate(${p.id})" aria-label="${t("מחיקת ההוצאה הפרטית", "Delete private expense")} ${esc(p.descr)}">✕</button></td>
   </tr>`).join("");
   document.getElementById("pEmpty").style.display = P.expenses.length ? "none" : "";
   document.getElementById("pCatList").innerHTML =
@@ -1143,12 +1167,12 @@ function renderPersonal(){
   const max = Math.max(...P.chart.map(c=>c.total), 1);
   document.getElementById("pChart").innerHTML = P.chart.map(c=>{
     const isCur = c.month===viewMonth;
-    const cap = (isCur || c.total===max) && c.total>0 ? `<span class="cap">${Math.round(c.total).toLocaleString("he-IL")}</span>` : "";
+    const cap = (isCur || c.total===max) && c.total>0 ? `<span class="cap">${Math.round(c.total).toLocaleString(LOCALE())}</span>` : "";
     return `<div class="col ${isCur?'':'dim'}">${cap}<div class="fill" style="height:${Math.round(c.total/max*100)}%"></div>
       <span class="tip">${monthLabel(c.month)} · ${fmt(c.total)}</span></div>`;
   }).join("");
   document.getElementById("pChartX").innerHTML =
-    P.chart.map(c=>`<span>${new Date(c.month+"-01T00:00").toLocaleDateString("he-IL",{month:"short"})}</span>`).join("");
+    P.chart.map(c=>`<span>${new Date(c.month+"-01T00:00").toLocaleDateString(LOCALE(),{month:"short"})}</span>`).join("");
 }
 
 /* ================= categories ================= */
@@ -1160,14 +1184,14 @@ function addCategory(ev){
   });
 }
 const setBudget = (id,val) => act(()=>api("/categories/"+id,"PATCH",{budget:parseFloat(val)||0}));
-const deleteCategory = async id => { if(await uiConfirm("למחוק את הקטגוריה?","מחיקה",true)) act(()=>api("/categories/"+id,"DELETE")); };
+const deleteCategory = async id => { if(await uiConfirm(t("למחוק את הקטגוריה?","Delete this category?"),t("מחיקה","Delete"),true)) act(()=>api("/categories/"+id,"DELETE")); };
 
 /* ================= recipes → shopping ================= */
 async function findRecipe(ev){
   ev.preventDefault();
   const btn = document.getElementById("recipeBtn");
   const box = document.getElementById("recipeResult");
-  btn.disabled = true; btn.textContent = "רגע, בודק…";
+  btn.disabled = true; btn.textContent = t("רגע, בודק…", "One sec, checking…");
   try{
     const r = await api("/shopping/recipe","POST",{dish:recipeDish.value});
     renderRecipeResult(r);
@@ -1175,32 +1199,33 @@ async function findRecipe(ev){
     if(e.message !== "auth") toast(e.message);
     box.style.display = "none";
   }finally{
-    btn.disabled = false; btn.textContent = "מצאו מצרכים";
+    btn.disabled = false; btn.textContent = t("מצאו מצרכים", "Find ingredients");
   }
 }
 function renderRecipeResult(r){
   const box = document.getElementById("recipeResult");
   box.style.display = "";
   box.innerHTML =
-    `<div style="font-size:14px; margin-bottom:6px">🍽️ <b>${esc(r.dish)}</b> — סמנו רק מה שחסר בבית:</div>` +
+    `<div style="font-size:14px; margin-bottom:6px">🍽️ <b>${esc(r.dish)}</b> — ${t("סמנו רק מה שחסר בבית:", "check only what you're missing at home:")}</div>` +
     r.ingredients.map(ing=>`<label class="list-item" style="cursor:pointer">
       <input type="checkbox" class="check recipe-ing" checked data-name="${esc(ing.name)}" data-note="${esc(ing.note||"")}">
       <span class="grow">${esc(ing.name)} ${ing.note?`<span class="meta">· ${esc(ing.note)}</span>`:""}</span>
     </label>`).join("") +
     `<div class="row-actions" style="margin-top:10px">
-      <button class="btn" onclick="addRecipeItems('${esc(r.dish)}')">הוספת המסומנים לרשימה 🛒</button>
-      <button class="btn ghost" type="button" onclick="document.getElementById('recipeResult').style.display='none'">ביטול</button>
+      <button class="btn" onclick="addRecipeItems('${esc(r.dish)}')">${t("הוספת המסומנים לרשימה 🛒", "Add checked items to the list 🛒")}</button>
+      <button class="btn ghost" type="button" onclick="document.getElementById('recipeResult').style.display='none'">${t("ביטול", "Cancel")}</button>
     </div>`;
 }
 async function addRecipeItems(dish){
   const items = [...document.querySelectorAll(".recipe-ing:checked")]
-    .map(c=>({name:c.dataset.name, note:(c.dataset.note ? c.dataset.note + " · " : "") + "ל" + dish}));
-  if(!items.length){ toast("לא סומן אף פריט"); return; }
+    .map(c=>({name:c.dataset.name, note:(c.dataset.note ? c.dataset.note + " · " : "") + t("ל", "for ") + dish}));
+  if(!items.length){ toast(t("לא סומן אף פריט", "No items checked")); return; }
   act(async ()=>{
     const r = await api("/shopping/bulk","POST",{items});
     document.getElementById("recipeResult").style.display = "none";
     document.getElementById("recipeDish").value = "";
-    toast(`נוספו ${r.added} פריטים לרשימה${r.skipped ? ` (${r.skipped} כבר היו בה)` : ""}`, "success");
+    toast(t(`נוספו ${r.added} פריטים לרשימה${r.skipped ? ` (${r.skipped} כבר היו בה)` : ""}`,
+            `Added ${r.added} items to the list${r.skipped ? ` (${r.skipped} were already on it)` : ""}`), "success");
   });
 }
 
@@ -1223,12 +1248,12 @@ function finishShopping(ev, withExpense){
   let expense = null;
   if(withExpense){
     const amount = parseFloat(document.getElementById("shopTotal").value);
-    if(!(amount>0)){ toast("נא להזין סכום"); return; }
+    if(!(amount>0)){ toast(t("נא להזין סכום", "Please enter an amount")); return; }
     expense = {amount, payer_id:parseInt(shopPayer.value), category_id:parseInt(shopCat.value), date:localToday()};
   }
   act(async ()=>{
     await api("/shopping/finish","POST",{expense});
-    if(withExpense) toast("הקנייה נרשמה כהוצאה", "success");
+    if(withExpense) toast(t("הקנייה נרשמה כהוצאה", "The trip was recorded as an expense"), "success");
   });
 }
 
@@ -1249,7 +1274,7 @@ function renderNotifications(){
     <div class="notif-item ${n.severity}" onclick="openNotif('${n.tab}')">
       <span class="ic">${n.icon}</span><span>${esc(n.text)}</span>
     </div>`).join("")
-  : `<div class="notif-empty">✨ אין התראות — הכול תחת שליטה</div>`;
+  : `<div class="notif-empty">${t("✨ אין התראות — הכול תחת שליטה", "✨ No notifications — everything's under control")}</div>`;
 }
 function syncBellExpanded(){
   const open = document.body.classList.contains("notif-open");
@@ -1324,6 +1349,65 @@ function a11yReset(){
   applyA11y();
 }
 
+/* ================= שפה (עברית/English) ================= */
+/* המנגנון: לכל אלמנט סטטי יש data-en; העברית המקורית נשמרת ב-dataset בהחלפה
+   הראשונה, כך שהמעבר הלוך-ושוב לא מאבד כלום. מחרוזות דינמיות עוברות דרך t(). */
+function swapText(el, toEn){
+  // מחליף רק את צומת הטקסט הראשון — לא נוגע בילדים (input בתוך label וכו')
+  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim());
+  if(node){
+    if(el.dataset.he === undefined) el.dataset.he = node.nodeValue;
+    node.nodeValue = toEn ? el.dataset.en : el.dataset.he;
+  } else if(!el.childElementCount){
+    if(el.dataset.he === undefined) el.dataset.he = el.textContent;
+    el.textContent = toEn ? el.dataset.en : el.dataset.he;
+  }
+}
+function swapAttr(el, attr, dataKey, toEn){
+  const heKey = "he" + dataKey[0].toUpperCase() + dataKey.slice(1);
+  if(el.dataset[heKey] === undefined) el.dataset[heKey] = el.getAttribute(attr) || "";
+  el.setAttribute(attr, toEn ? el.dataset[dataKey] : el.dataset[heKey]);
+}
+function applyLang(){
+  const en = LANG === "en";
+  document.documentElement.lang = en ? "en" : "he";
+  document.documentElement.dir = en ? "ltr" : "rtl";
+  rebuildFormatters();
+
+  document.querySelectorAll("[data-en]").forEach(el => swapText(el, en));
+  document.querySelectorAll("[data-en-placeholder]").forEach(el => swapAttr(el, "placeholder", "enPlaceholder", en));
+  document.querySelectorAll("[data-en-title]").forEach(el => swapAttr(el, "title", "enTitle", en));
+  document.querySelectorAll("[data-en-aria]").forEach(el => swapAttr(el, "aria-label", "enAria", en));
+
+  // חיצי החודשים: הכפתור הראשון (חודש קודם) יושב בצד ההתחלה של השורה —
+  // ימין ב-RTL, שמאל ב-LTR — והחץ תמיד מצביע כלפי חוץ.
+  document.getElementById("mnPrev")?.classList.toggle("arr-right", !en);
+  document.getElementById("mnPrev")?.classList.toggle("arr-left", en);
+  document.getElementById("mnNext")?.classList.toggle("arr-left", !en);
+  document.getElementById("mnNext")?.classList.toggle("arr-right", en);
+
+  // כפתורי הבחירה בפאנל + הקישור במסך הכניסה
+  document.getElementById("langHe")?.setAttribute("aria-pressed", en ? "false" : "true");
+  document.getElementById("langEn")?.setAttribute("aria-pressed", en ? "true" : "false");
+  const link = document.getElementById("authLangLink");
+  if(link) link.textContent = en ? "עברית" : "English";
+
+  // ברירת מחדל של תדירות מטלה — מתורגמת רק אם המשתמש לא שינה אותה
+  const freq = document.getElementById("choreFreq");
+  if(freq && (freq.value === "שבועי" || freq.value === "weekly")) freq.value = t("שבועי", "weekly");
+
+  if(S) renderAll();
+  else if(document.getElementById("monthLabel"))
+    document.getElementById("monthLabel").textContent = monthLabel(viewMonth);
+}
+function setLang(lang){
+  if(lang === LANG) return;
+  LANG = lang === "en" ? "en" : "he";
+  localStorage.setItem("kaza-lang", LANG);
+  applyLang();
+}
+function toggleLang(){ setLang(LANG === "he" ? "en" : "he"); }
+
 /* ================= הודעת עוגיות ================= */
 function dismissCookie(){
   localStorage.setItem("cookie-ok", "1");
@@ -1352,16 +1436,16 @@ function addNote(ev){
     await api("/bulletin","POST",{content, is_pinned:document.getElementById("notePin").checked});
     document.getElementById("noteContent").value = "";
     document.getElementById("notePin").checked = false;
-    toast("המודעה עלתה ללוח", "success");
+    toast(t("המודעה עלתה ללוח", "Posted to the board"), "success");
   });
 }
 const deleteNote = async id => {
-  if(await uiConfirm("להסיר את המודעה מהלוח?","הסרה",true))
+  if(await uiConfirm(t("להסיר את המודעה מהלוח?","Remove this note from the board?"),t("הסרה","Remove"),true))
     actBulletin(()=>api("/bulletin/"+id,"DELETE"));
 };
 const noteDate = created => {
   const d = (created||"").slice(0,10);
-  return d === new Date().toISOString().slice(0,10) ? "היום" : heDate(d);
+  return d === new Date().toISOString().slice(0,10) ? t("היום", "today") : heDate(d);
 };
 function renderBulletin(){
   const notes = S.bulletin || [];
@@ -1372,10 +1456,10 @@ function renderBulletin(){
       <div class="note-meta">
         <span class="who">${avatar(n.author_id,"sm")} <span>${esc(n.author)}</span></span>
         <span>· ${noteDate(n.created_at)}</span>
-        <button class="mini-btn danger del" onclick="deleteNote(${n.id})" title="הסרת המודעה" aria-label="הסרת המודעה">🗑</button>
+        <button class="mini-btn danger del" onclick="deleteNote(${n.id})" title="${t("הסרת המודעה", "Remove note")}" aria-label="${t("הסרת המודעה", "Remove note")}">🗑</button>
       </div>
     </div>`).join("")
-  : `<div class="empty" style="grid-column:1/-1"><span class="e">📋</span>הלוח ריק — פרסמו את המודעה הראשונה</div>`;
+  : `<div class="empty" style="grid-column:1/-1"><span class="e">📋</span>${t("הלוח ריק — פרסמו את המודעה הראשונה", "The board is empty — post the first note")}</div>`;
 }
 
 /* ================= bills ================= */
@@ -1390,7 +1474,7 @@ function addBill(ev){
 }
 const payBill = (id,payer_id) => act(()=>api(`/bills/${id}/pay`,"POST",{month:viewMonth, payer_id}));
 const unpayBill = id => act(()=>api(`/bills/${id}/unpay`,"POST",{month:viewMonth}));
-const deleteBill = async id => { if(await uiConfirm("למחוק את החשבון הקבוע? הוצאות שכבר נרשמו יישארו.","מחיקה",true)) act(()=>api("/bills/"+id,"DELETE")); };
+const deleteBill = async id => { if(await uiConfirm(t("למחוק את החשבון הקבוע? הוצאות שכבר נרשמו יישארו.","Delete this recurring bill? Already-recorded expenses stay."),t("מחיקה","Delete"),true)) act(()=>api("/bills/"+id,"DELETE")); };
 
 /* ================= chores ================= */
 function addChore(ev){
@@ -1398,21 +1482,21 @@ function addChore(ev){
   act(async ()=>{
     await api("/chores","POST",{name:choreName.value, freq:choreFreq.value, assignee_id:parseInt(choreWho.value)});
     ev.target.reset();
-    document.getElementById("choreFreq").value = "שבועי";
+    document.getElementById("choreFreq").value = t("שבועי", "weekly");
   });
 }
 const doneChore = id => act(async ()=>{
   await api(`/chores/${id}/done`,"POST",{date:localToday()});
-  toast("כל הכבוד! התור עבר הלאה", "success");
+  toast(t("כל הכבוד! התור עבר הלאה", "Nice! The turn moved on"), "success");
 });
-const deleteChore = async id => { if(await uiConfirm("למחוק את המטלה?","מחיקה",true)) act(()=>api("/chores/"+id,"DELETE")); };
+const deleteChore = async id => { if(await uiConfirm(t("למחוק את המטלה?","Delete this chore?"),t("מחיקה","Delete"),true)) act(()=>api("/chores/"+id,"DELETE")); };
 
 /* ================= settings ================= */
 function copyInvite(){
   const code = S?.household?.invite_code || "";
   navigator.clipboard?.writeText(code)
-    .then(()=>toast("הקוד הועתק", "success"))
-    .catch(()=>toast("הקוד: " + code, "info"));
+    .then(()=>toast(t("הקוד הועתק", "Code copied"), "success"))
+    .catch(()=>toast(t("הקוד: ", "The code: ") + code, "info"));
 }
 
 /* ================= rendering ================= */
@@ -1426,8 +1510,8 @@ const catOpts = () => S.categories.map(c=>({v:c.id, t:`${catEmoji(c.name)} ${esc
 
 function meterColor(r){ return r>1 ? "var(--critical)" : r>=0.85 ? "var(--warn)" : "var(--accent)"; }
 function meterNote(r){
-  if(r>1) return `<span class="status-note over">❗ חריגה</span>`;
-  if(r>=0.85) return `<span class="status-note warn">⚠ מתקרב לתקרה</span>`;
+  if(r>1) return `<span class="status-note over">${t("❗ חריגה", "❗ Over budget")}</span>`;
+  if(r>=0.85) return `<span class="status-note warn">${t("⚠ מתקרב לתקרה", "⚠ Nearing the cap")}</span>`;
   return "";
 }
 function meterHTML(nm, spent, budget){
@@ -1444,18 +1528,18 @@ function renderDash(){
   const P = S.personal;
   const myTotal = Math.round((P.private_total + P.share_total)*100)/100;
   const myPrev = P.chart.length>1 ? P.chart[P.chart.length-2].total : 0;
-  let deltaHTML = `<div class="delta">אין נתונים לחודש קודם</div>`;
+  let deltaHTML = `<div class="delta">${t("אין נתונים לחודש קודם", "No data for last month")}</div>`;
   if(myPrev>0){
     const d = myTotal-myPrev, pct = Math.round(Math.abs(d)/myPrev*100);
     deltaHTML = d>=0
-      ? `<div class="delta up-bad">▲ ${pct}%+ מהחודש הקודם</div>`
-      : `<div class="delta down-good">▼ ${pct}%- מהחודש הקודם</div>`;
+      ? `<div class="delta up-bad">${t(`▲ ${pct}%+ מהחודש הקודם`, `▲ ${pct}% up from last month`)}</div>`
+      : `<div class="delta down-good">${t(`▼ ${pct}%- מהחודש הקודם`, `▼ ${pct}% down from last month`)}</div>`;
   }
   const mine = S.balances.find(b=>b.id===S.user.id)?.balance || 0;
   let balHTML;
-  if(Math.abs(mine)<0.01) balHTML = `<div class="value" style="color:var(--good-text)">מאוזן ✓</div><div class="delta">אין חובות פתוחים מולך</div>`;
-  else if(mine>0) balHTML = `<div class="value amount-pos">${fmt(mine)}</div><div class="delta">מגיע לך מהשותפים 💰</div>`;
-  else balHTML = `<div class="value amount-neg">${fmt(-mine)}</div><div class="delta">עליך להחזיר — פרטים בהוצאות</div>`;
+  if(Math.abs(mine)<0.01) balHTML = `<div class="value" style="color:var(--good-text)">${t("מאוזן ✓", "Settled ✓")}</div><div class="delta">${t("אין חובות פתוחים מולך", "No open debts involving you")}</div>`;
+  else if(mine>0) balHTML = `<div class="value amount-pos">${fmt(mine)}</div><div class="delta">${t("מגיע לך מהשותפים 💰", "The roommates owe you 💰")}</div>`;
+  else balHTML = `<div class="value amount-neg">${fmt(-mine)}</div><div class="delta">${t("עליך להחזיר — פרטים בהוצאות", "You owe — details in Expenses")}</div>`;
 
   const openItems = S.shopping.filter(i=>!i.done);
   const urgent = openItems.filter(i=>i.urgent).length;
@@ -1463,52 +1547,52 @@ function renderDash(){
   const totalBudget = S.categories.reduce((s,c)=>s+c.budget,0);
 
   document.getElementById("dashTiles").innerHTML = `
-    <div class="tile"><div class="label">💸 ההוצאות שלי · ${monthLabel(viewMonth)}</div>
+    <div class="tile"><div class="label">${t("💸 ההוצאות שלי", "💸 My spending")} · ${monthLabel(viewMonth)}</div>
       <div class="value">${fmt(myTotal)}</div>${deltaHTML}</div>
-    <div class="tile"><div class="label">🤝 המאזן שלי</div>${balHTML}</div>
-    <div class="tile"><div class="label">🛒 רשימת קניות</div>
+    <div class="tile"><div class="label">${t("🤝 המאזן שלי", "🤝 My balance")}</div>${balHTML}</div>
+    <div class="tile"><div class="label">${t("🛒 רשימת קניות", "🛒 Shopping list")}</div>
       <div class="value">${openItems.length}</div>
-      <div class="delta ${urgent?'up-bad':''}">${urgent ? urgent+" פריטים דחופים" : "פריטים ממתינים"}</div></div>
-    <div class="tile"><div class="label">🧾 חשבונות החודש</div>
+      <div class="delta ${urgent?'up-bad':''}">${urgent ? t(`${urgent} פריטים דחופים`, `${urgent} urgent items`) : t("פריטים ממתינים", "items waiting")}</div></div>
+    <div class="tile"><div class="label">${t("🧾 חשבונות החודש", "🧾 This month's bills")}</div>
       <div class="value">${paidCount}/${S.bills.length}</div>
-      <div class="delta">שולמו · סה״כ תקציב ${fmt(totalBudget)}</div></div>`;
+      <div class="delta">${t("שולמו · סה״כ תקציב", "paid · total budget")} ${fmt(totalBudget)}</div></div>`;
 
   document.getElementById("dashBudgetMonth").textContent = "· " + monthLabel(viewMonth);
   const rows = S.categories.filter(c=>c.budget>0)
     .map(c=>({c, r:c.spent/c.budget})).sort((a,b)=>b.r-a.r);
   document.getElementById("dashMeters").innerHTML =
     rows.length ? rows.map(x=>meterHTML(`${catEmoji(x.c.name)} ${esc(x.c.name)}`, x.c.spent, x.c.budget)).join("")
-                : `<div class="empty"><span class="e">🎯</span>אין קטגוריות עם תקציב — מגדירים בלשונית "תקציבים"</div>`;
+                : `<div class="empty"><span class="e">🎯</span>${t('אין קטגוריות עם תקציב — מגדירים בלשונית "תקציבים"', 'No categories with a budget — set them on the "Budgets" tab')}</div>`;
 
   const myChart = P.chart;
   const max = Math.max(...myChart.map(c=>c.total), 1);
   document.getElementById("dashChart").innerHTML = myChart.map(c=>{
     const isCur = c.month===viewMonth;
-    const cap = (isCur || c.total===max) && c.total>0 ? `<span class="cap">${Math.round(c.total).toLocaleString("he-IL")}</span>` : "";
+    const cap = (isCur || c.total===max) && c.total>0 ? `<span class="cap">${Math.round(c.total).toLocaleString(LOCALE())}</span>` : "";
     return `<div class="col ${isCur?'':'dim'}">${cap}<div class="fill" style="height:${Math.round(c.total/max*100)}%"></div>
       <span class="tip">${monthLabel(c.month)} · ${fmt(c.total)}</span></div>`;
   }).join("");
   document.getElementById("dashChartX").innerHTML =
-    myChart.map(c=>`<span>${new Date(c.month+"-01T00:00").toLocaleDateString("he-IL",{month:"short"})}</span>`).join("");
+    myChart.map(c=>`<span>${new Date(c.month+"-01T00:00").toLocaleDateString(LOCALE(),{month:"short"})}</span>`).join("");
 
   const unpaid = S.bills.filter(b=>!b.paid);
   const isCurMonth = viewMonth===localToday().slice(0,7);
   const todayDay = new Date().getDate();
   document.getElementById("dashBills").innerHTML =
     unpaid.length ? unpaid.map(b=>`<div class="list-item">
-        <div class="grow">${esc(b.name)} <span class="meta">· יום ${b.due_day} בחודש</span></div>
-        ${isCurMonth && todayDay>b.due_day ? '<span class="badge overdue">באיחור</span>' : ''}
+        <div class="grow">${esc(b.name)} <span class="meta">${t(`· יום ${b.due_day} בחודש`, `· day ${b.due_day} of the month`)}</span></div>
+        ${isCurMonth && todayDay>b.due_day ? `<span class="badge overdue">${t("באיחור", "Overdue")}</span>` : ''}
         <span class="meta" style="font-variant-numeric:tabular-nums">${fmt(b.amount)}</span>
-      </div>`).join("") : `<div class="empty"><span class="e">🎉</span>כל החשבונות של החודש שולמו</div>`;
+      </div>`).join("") : `<div class="empty"><span class="e">🎉</span>${t("כל החשבונות של החודש שולמו", "All of this month's bills are paid")}</div>`;
 
   const urgentItems = openItems.filter(i=>i.urgent);
   document.getElementById("dashShopping").innerHTML =
     urgentItems.length ? urgentItems.map(i=>`<div class="list-item">
         <div class="grow">${esc(i.name)} ${i.note?`<span class="meta">· ${esc(i.note)}</span>`:""}</div>
-        <span class="badge urgent">דחוף</span>
+        <span class="badge urgent">${t("דחוף", "Urgent")}</span>
       </div>`).join("")
-    : (openItems.length ? `<div class="empty"><span class="e">🧘</span>אין פריטים דחופים (${openItems.length} רגילים ברשימה)</div>`
-                        : `<div class="empty"><span class="e">✨</span>הרשימה ריקה — הכול קנוי</div>`);
+    : (openItems.length ? `<div class="empty"><span class="e">🧘</span>${t(`אין פריטים דחופים (${openItems.length} רגילים ברשימה)`, `No urgent items (${openItems.length} regular ones on the list)`)}</div>`
+                        : `<div class="empty"><span class="e">✨</span>${t("הרשימה ריקה — הכול קנוי", "The list is empty — everything's bought")}</div>`);
 
   renderBulletin();
 }
@@ -1519,42 +1603,42 @@ function renderExpenses(){
   const mine = S.expenses.filter(e=>e.mine);
   const myTotal = mine.reduce((s,e)=>s+e.my_share, 0);
   document.getElementById("expMonthNote").textContent =
-    `· ${monthLabel(viewMonth)} · סה״כ שלי ${fmt(myTotal)}`;
+    `· ${monthLabel(viewMonth)} · ${t("סה״כ שלי", "my total")} ${fmt(myTotal)}`;
   document.getElementById("expTable").innerHTML = mine.map(e=>`<tr>
     <td class="num">${heDate(e.date)}</td>
-    <td>${esc(e.descr)}${e.my_share!==e.amount ? `<div class="meta">חלקי מתוך ${fmt(e.amount)}</div>` : ""}</td>
+    <td>${esc(e.descr)}${e.my_share!==e.amount ? `<div class="meta">${t("חלקי מתוך", "my part of")} ${fmt(e.amount)}</div>` : ""}</td>
     <td><span class="badge">${catEmoji(e.category)} ${esc(e.category)}</span></td>
     <td class="num"><b>${fmt(e.my_share)}</b></td>
     <td>${who(e.payer_id)}</td>
     <td style="font-size:12.5px;color:var(--ink2)">${splitLabel(e.split_type)}</td>
-    <td><button class="mini-btn danger" onclick="deleteExpense(${e.id})" aria-label="מחיקת ההוצאה ${esc(e.descr)}">✕</button></td>
+    <td><button class="mini-btn danger" onclick="deleteExpense(${e.id})" aria-label="${t("מחיקת ההוצאה", "Delete expense")} ${esc(e.descr)}">✕</button></td>
   </tr>`).join("");
   document.getElementById("expEmpty").style.display = mine.length ? "none" : "";
 
   document.getElementById("balancesBox").innerHTML = S.balances.map(b=>{
     const cls = b.balance>0.01 ? "amount-pos" : b.balance<-0.01 ? "amount-neg" : "";
-    const txt = b.balance>0.01 ? `מגיע לו/ה ${fmt(b.balance)}`
-              : b.balance<-0.01 ? `חייב/ת ${fmt(-b.balance)}` : "מאוזן ✓";
+    const txt = b.balance>0.01 ? `${t("מגיע לו/ה", "Is owed")} ${fmt(b.balance)}`
+              : b.balance<-0.01 ? `${t("חייב/ת", "Owes")} ${fmt(-b.balance)}` : t("מאוזן ✓", "Settled ✓");
     const carry = Math.abs(b.carryover) > 0.01
-      ? `<span class="meta"> · כולל ${fmt(Math.abs(b.carryover))} מחודשים קודמים</span>` : "";
+      ? `<span class="meta"> · ${t("כולל", "incl.")} ${fmt(Math.abs(b.carryover))} ${t("מחודשים קודמים", "from previous months")}</span>` : "";
     return `<div class="list-item"><div class="grow">${who(b.id, "")}</div><span class="${cls}" style="font-size:13.5px">${txt}${carry}</span></div>`;
   }).join("");
 
   document.getElementById("transfersBox").innerHTML = S.transfers.length
-    ? `<div class="hint" style="margin-top:10px">הדרך הקצרה לסגור את החשבון:</div>` +
-      S.transfers.map(t=>`<div class="list-item">
+    ? `<div class="hint" style="margin-top:10px">${t("הדרך הקצרה לסגור את החשבון:", "Quickest way to settle:")}</div>` +
+      S.transfers.map(tr=>`<div class="list-item">
         <div class="grow" style="font-size:13.5px; display:flex; align-items:center; gap:6px; flex-wrap:wrap">
-          ${avatar(t.from_id,"sm")} <b>${esc(t.from)}</b> ← מעביר/ה ל־${avatar(t.to_id,"sm")} <b>${esc(t.to)}</b> <b>${fmt(t.amount)}</b>
+          ${avatar(tr.from_id,"sm")} <b>${esc(tr.from)}</b> ${t("← מעביר/ה ל־", "pays")} ${avatar(tr.to_id,"sm")} <b>${esc(tr.to)}</b> <b>${fmt(tr.amount)}</b>
         </div>
-        <button class="mini-btn" onclick="recordTransfer(${t.from_id},${t.to_id},${t.amount})">בוצע ✓</button>
+        <button class="mini-btn" onclick="recordTransfer(${tr.from_id},${tr.to_id},${tr.amount})">${t("בוצע ✓", "Done ✓")}</button>
       </div>`).join("")
     : "";
 
   document.getElementById("settleHistory").innerHTML = S.settlements.length
-    ? `<div class="hint" style="margin-top:10px">העברות אחרונות:</div>` +
+    ? `<div class="hint" style="margin-top:10px">${t("העברות אחרונות:", "Recent transfers:")}</div>` +
       S.settlements.map(s=>`<div class="list-item">
-        <div class="grow" style="font-size:13px">${heDate(s.date)} — ${esc(s.from)} העביר/ה ל${esc(s.to)} ${fmt(s.amount)}</div>
-        <button class="mini-btn danger" onclick="deleteSettlement(${s.id})" aria-label="מחיקת העברה">✕</button>
+        <div class="grow" style="font-size:13px">${heDate(s.date)} — ${t(`${esc(s.from)} העביר/ה ל${esc(s.to)}`, `${esc(s.from)} paid ${esc(s.to)}`)} ${fmt(s.amount)}</div>
+        <button class="mini-btn danger" onclick="deleteSettlement(${s.id})" aria-label="${t("מחיקת העברה", "Delete transfer")}">✕</button>
       </div>`).join("")
     : "";
 }
@@ -1568,7 +1652,7 @@ function renderBudgets(){
       <div class="meter" style="--m:${meterColor(r)}"><div class="meter-fill" style="width:${Math.min(100,r*100)}%"></div></div>
       <div style="display:flex; gap:8px; align-items:center">
         <span class="nums">${fmt(c.spent)}</span>
-        <button class="mini-btn danger" onclick="deleteCategory(${c.id})" title="מחיקת קטגוריה" aria-label="מחיקת הקטגוריה ${esc(c.name)}">✕</button>
+        <button class="mini-btn danger" onclick="deleteCategory(${c.id})" title="${t("מחיקת קטגוריה", "Delete category")}" aria-label="${t("מחיקת הקטגוריה", "Delete category")} ${esc(c.name)}">✕</button>
       </div>
     </div>`;
   }).join("");
@@ -1576,15 +1660,15 @@ function renderBudgets(){
 
 function renderShopping(){
   const items = S.shopping;
-  document.getElementById("shopCount").textContent = `· ${items.filter(i=>!i.done).length} ממתינים`;
+  document.getElementById("shopCount").textContent = `· ${items.filter(i=>!i.done).length} ${t("ממתינים", "waiting")}`;
   document.getElementById("shopList").innerHTML = items.length ? items.map(i=>`
     <div class="list-item ${i.done?'done':''}">
       <input type="checkbox" class="check" ${i.done?"checked":""} onchange="toggleShopItem(${i.id})">
       <div class="grow">${esc(i.name)} ${i.note?`<span class="meta">· ${esc(i.note)}</span>`:""}
-        <span class="meta">· הוסיפ/ה ${esc(i.added_by)}</span></div>
-      ${i.urgent?'<span class="badge urgent">דחוף</span>':""}
-      <button class="mini-btn danger" onclick="deleteShopItem(${i.id})" aria-label="מחיקת ${esc(i.name)} מהרשימה">✕</button>
-    </div>`).join("") : `<div class="empty"><span class="e">🧺</span>הרשימה ריקה — מוסיפים פריט למעלה</div>`;
+        <span class="meta">· ${t("הוסיפ/ה", "added by")} ${esc(i.added_by)}</span></div>
+      ${i.urgent?`<span class="badge urgent">${t("דחוף", "Urgent")}</span>`:""}
+      <button class="mini-btn danger" onclick="deleteShopItem(${i.id})" aria-label="${t("מחיקת", "Delete")} ${esc(i.name)}">✕</button>
+    </div>`).join("") : `<div class="empty"><span class="e">🧺</span>${t("הרשימה ריקה — מוסיפים פריט למעלה", "The list is empty — add an item above")}</div>`;
   document.getElementById("shopClearWrap").style.display = items.some(i=>i.done) ? "" : "none";
 }
 
@@ -1595,39 +1679,39 @@ function renderBills(){
   document.getElementById("billsList").innerHTML = S.bills.length ? S.bills.map(b=>{
     const overdue = !b.paid && isCurMonth && todayDay > b.due_day;
     return `<div class="list-item">
-      <div class="grow">${esc(b.name)} <span class="meta">· יום ${b.due_day} · ${catEmoji(b.category)} ${esc(b.category)}</span></div>
+      <div class="grow">${esc(b.name)} <span class="meta">· ${t("יום", "day")} ${b.due_day} · ${catEmoji(b.category)} ${esc(b.category)}</span></div>
       <span class="meta" style="font-variant-numeric:tabular-nums">${fmt(b.amount)}</span>
       ${b.paid
-        ? `<span class="badge paid">✓ שולם ע״י ${esc(b.paid.payer)}</span>
-           <button class="mini-btn" onclick="unpayBill(${b.id})">ביטול</button>`
-        : `${overdue?'<span class="badge overdue">באיחור</span>':""}
+        ? `<span class="badge paid">${t("✓ שולם ע״י", "✓ Paid by")} ${esc(b.paid.payer)}</span>
+           <button class="mini-btn" onclick="unpayBill(${b.id})">${t("ביטול", "Undo")}</button>`
+        : `${overdue?`<span class="badge overdue">${t("באיחור", "Overdue")}</span>`:""}
            <span class="row-actions">${S.members.map(m=>
-              `<button class="mini-btn" onclick="payBill(${b.id},${m.id})">${avatar(m.id,"sm")} שילם/ה</button>`).join("")}
+              `<button class="mini-btn" onclick="payBill(${b.id},${m.id})">${avatar(m.id,"sm")} ${t("שילם/ה", "paid")}</button>`).join("")}
            </span>`}
-      <button class="mini-btn danger" onclick="deleteBill(${b.id})" aria-label="מחיקת החשבון ${esc(b.name)}">✕</button>
+      <button class="mini-btn danger" onclick="deleteBill(${b.id})" aria-label="${t("מחיקת החשבון", "Delete bill")} ${esc(b.name)}">✕</button>
     </div>`;
-  }).join("") : `<div class="empty"><span class="e">🧾</span>אין חשבונות קבועים — מוסיפים למטה</div>`;
+  }).join("") : `<div class="empty"><span class="e">🧾</span>${t("אין חשבונות קבועים — מוסיפים למטה", "No recurring bills — add one below")}</div>`;
 }
 
 function renderChores(){
   document.getElementById("choresList").innerHTML = S.chores.length ? S.chores.map(c=>`
     <div class="list-item">
       <div class="grow">${esc(c.name)}
-        <span class="meta">· ${esc(c.freq)}${c.last_done?` · בוצע לאחרונה ${heDate(c.last_done)}`:""}</span></div>
-      <span class="badge" style="display:inline-flex; align-items:center; gap:5px">תור של ${avatar(c.assignee_id,"sm")} ${esc(c.assignee)}</span>
-      <button class="mini-btn" onclick="doneChore(${c.id})">בוצע ✓</button>
-      <button class="mini-btn danger" onclick="deleteChore(${c.id})" aria-label="מחיקת המטלה ${esc(c.name)}">✕</button>
-    </div>`).join("") : `<div class="empty"><span class="e">🧽</span>אין מטלות — מוסיפים למטה</div>`;
+        <span class="meta">· ${esc(c.freq)}${c.last_done?` · ${t("בוצע לאחרונה", "last done")} ${heDate(c.last_done)}`:""}</span></div>
+      <span class="badge" style="display:inline-flex; align-items:center; gap:5px">${t("תור של", "Turn of")} ${avatar(c.assignee_id,"sm")} ${esc(c.assignee)}</span>
+      <button class="mini-btn" onclick="doneChore(${c.id})">${t("בוצע ✓", "Done ✓")}</button>
+      <button class="mini-btn danger" onclick="deleteChore(${c.id})" aria-label="${t("מחיקת המטלה", "Delete chore")} ${esc(c.name)}">✕</button>
+    </div>`).join("") : `<div class="empty"><span class="e">🧽</span>${t("אין מטלות — מוסיפים למטה", "No chores — add one below")}</div>`;
 }
 
 function renderSettings(){
   document.getElementById("hhInfo").innerHTML =
-    `<div style="font-size:13.5px">שם הדירה: <b>${esc(S.household.name)}</b></div>`;
+    `<div style="font-size:13.5px">${t("שם הדירה:", "Home name:")} <b>${esc(S.household.name)}</b></div>`;
   document.getElementById("inviteCode").textContent = S.household.invite_code;
   document.getElementById("membersList").innerHTML = S.members.map(m=>
-    `<div class="list-item"><div class="grow">${who(m.id, "")}</div>${m.id===S.user.id?'<span class="meta">(זה אני)</span>':''}</div>`).join("");
+    `<div class="list-item"><div class="grow">${who(m.id, "")}</div>${m.id===S.user.id?`<span class="meta">${t("(זה אני)", "(that's me)")}</span>`:''}</div>`).join("");
   document.getElementById("myInfo").innerHTML =
-    `<span class="who">${avatar(S.user.id,"lg")} <span>מחובר/ת בתור <b>${esc(S.user.name)}</b><br><span class="meta">${esc(S.user.email)}</span></span></span>`;
+    `<span class="who">${avatar(S.user.id,"lg")} <span>${t("מחובר/ת בתור", "Signed in as")} <b>${esc(S.user.name)}</b><br><span class="meta">${esc(S.user.email)}</span></span></span>`;
 }
 
 function renderAll(){
@@ -1655,7 +1739,8 @@ document.addEventListener("visibilitychange", ()=>{ if(S && document.visibilityS
 // אייקוני האמוג'י בניווט הם דקורטיביים — מסתירים אותם מקוראי מסך כדי שיוקרא רק הטקסט
 document.querySelectorAll("nav.tabs .ico, .sheet .ico").forEach(el=>el.setAttribute("aria-hidden","true"));
 
-// החלת העדפות נגישות שמורות + הודעת עוגיות
+// החלת העדפות שמורות: שפה, נגישות, עוגיות
+applyLang();
 applyA11y();
 initCookieNote();
 
