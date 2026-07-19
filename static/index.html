@@ -291,6 +291,12 @@
     transition:background .15s;
   }
   .bell:hover{background:rgba(255,255,255,.24);}
+  .lang-btn{
+    height:36px; min-width:36px; padding:0 11px; border-radius:999px; border:none; cursor:pointer;
+    background:rgba(255,255,255,.14); color:#fff; font-weight:700; font-size:12.5px;
+    font-family:inherit; transition:background .15s;
+  }
+  .lang-btn:hover{background:rgba(255,255,255,.24);}
   .bell-badge{
     position:absolute; top:-5px; inset-inline-start:-5px;
     background:var(--critical); color:#fff; font-size:10.5px; font-weight:700;
@@ -451,14 +457,7 @@
 <button class="a11y-fab" id="a11yBtn" onclick="toggleA11y(event)"
         aria-haspopup="true" aria-expanded="false" aria-controls="a11yPanel" aria-label="הגדרות נגישות" data-en-aria="Accessibility settings">♿</button>
 <div class="a11y-panel" id="a11yPanel" role="dialog" aria-label="הגדרות נגישות" data-en-aria="Accessibility settings">
-  <div class="a11y-title" data-en="Accessibility &amp; language">נגישות ושפה</div>
-  <div class="a11y-row" role="group" aria-label="שפה / Language">
-    <span data-en="Language">שפה</span>
-    <div class="a11y-sizes">
-      <button id="langHe" onclick="setLang('he')" style="width:auto; padding:6px 10px" aria-pressed="true">עברית</button>
-      <button id="langEn" onclick="setLang('en')" style="width:auto; padding:6px 10px" aria-pressed="false">EN</button>
-    </div>
-  </div>
+  <div class="a11y-title" data-en="Accessibility settings">הגדרות נגישות</div>
   <div class="a11y-row" role="group" aria-label="גודל טקסט" data-en-aria="Text size">
     <span data-en="Text size">גודל טקסט</span>
     <div class="a11y-sizes">
@@ -571,6 +570,7 @@
           <div class="label" id="monthLabel" aria-live="polite"></div>
           <button class="mn-arrow arr-left" id="mnNext" onclick="shiftMonth(1)" title="חודש הבא" data-en-title="Next month" aria-label="חודש הבא" data-en-aria="Next month"></button>
         </div>
+        <button class="lang-btn" id="langBtn" onclick="toggleLang()" title="English" aria-label="Switch to English">EN</button>
         <div class="bell-wrap">
           <button class="bell" onclick="toggleNotifPanel(event)" title="התראות" data-en-title="Notifications" aria-label="התראות" data-en-aria="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="notifPanel">🔔<span id="bellBadge" class="bell-badge" style="display:none"></span></button>
           <div class="notif-panel" id="notifPanel" role="region" aria-label="התראות" data-en-aria="Notifications">
@@ -909,6 +909,20 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 let LANG = localStorage.getItem("kaza-lang") === "en" ? "en" : "he";
 const t = (he, en) => LANG === "he" ? he : en;
 const LOCALE = () => LANG === "he" ? "he-IL" : "en-GB";
+
+/* שמות ברירת-המחדל שהשרת זורע בעברית (קטגוריות/חשבונות/מטלות) — תרגום
+   תצוגה בלבד באנגלית. שמות שהמשתמשים יצרו בעצמם מוצגים כמו שהוקלדו. */
+const DEFAULT_NAMES = {
+  "סופר ומזון": "Groceries & food", "אוכל בחוץ": "Eating out",
+  "בית וניקיון": "Home & cleaning", "חשבונות ודיור": "Bills & housing",
+  "בילויים": "Going out", "אחר": "Other",
+  "שכר דירה": "Rent", "ארנונה": "Arnona (city tax)", "חשמל": "Electricity",
+  "מים": "Water", "אינטרנט": "Internet", "ועד בית": "Building fee",
+  "שטיפת רצפה": "Mop the floor", "כלים / מדיח": "Dishes / dishwasher",
+  "הוצאת זבל": "Take out the trash", "ניקוי שירותים ואמבטיה": "Clean bathroom & toilet",
+  "שבועי": "weekly", "יומי": "daily", "יומיים": "every 2 days",
+};
+const dn = name => LANG === "en" ? (DEFAULT_NAMES[name] || name) : name;
 let ILS = null;
 function rebuildFormatters(){
   ILS = new Intl.NumberFormat(LOCALE(),{style:"currency",currency:"ILS",minimumFractionDigits:0,maximumFractionDigits:2});
@@ -945,10 +959,12 @@ const who = (id, cls="sm") => `<span class="who">${avatar(id, cls)}<span>${membe
 /* אימוג'י לקטגוריה לפי שם */
 function catEmoji(name = ""){
   const rules = [
-    [/סופר|מזון|מכולת/, "🛒"], [/מסעד|אוכל|פיצה|קפה/, "🍕"], [/בית|ניקיון|ניקוי/, "🧹"],
-    [/חשבונ|דיור|שכירות|שכר דירה/, "🧾"], [/בילוי|פנאי|יציאות/, "🎉"], [/תחבורה|דלק|רכב|אוטובוס/, "🚌"],
-    [/בריאות|רפואה|תרופ/, "💊"], [/ספורט|כושר/, "💪"], [/חיות|חיה/, "🐾"], [/מתנ/, "🎁"],
-    [/ביגוד|בגד|אופנה/, "👕"], [/אחר/, "📦"],
+    [/סופר|מזון|מכולת|grocer|food|market/i, "🛒"], [/מסעד|אוכל|פיצה|קפה|restaurant|eat|pizza|coffee|cafe/i, "🍕"],
+    [/בית|ניקיון|ניקוי|home|clean/i, "🧹"], [/חשבונ|דיור|שכירות|שכר דירה|bill|rent|housing|utilit/i, "🧾"],
+    [/בילוי|פנאי|יציאות|going out|fun|leisure|entertain/i, "🎉"], [/תחבורה|דלק|רכב|אוטובוס|transport|gas|fuel|car|bus/i, "🚌"],
+    [/בריאות|רפואה|תרופ|health|medic|pharma/i, "💊"], [/ספורט|כושר|sport|gym|fitness/i, "💪"],
+    [/חיות|חיה|pet|animal/i, "🐾"], [/מתנ|gift/i, "🎁"],
+    [/ביגוד|בגד|אופנה|cloth|fashion|wear/i, "👕"], [/אחר|other|misc/i, "📦"],
   ];
   for(const [re, e] of rules) if(re.test(name)) return e;
   return "🏷️";
@@ -1156,7 +1172,7 @@ function renderPersonal(){
   document.getElementById("pTable").innerHTML = P.expenses.map(p=>`<tr>
     <td class="num">${heDate(p.date)}</td>
     <td>${esc(p.descr)}</td>
-    <td>${p.category?`<span class="badge">${catEmoji(p.category)} ${esc(p.category)}</span>`:""}</td>
+    <td>${p.category?`<span class="badge">${catEmoji(p.category)} ${esc(dn(p.category))}</span>`:""}</td>
     <td class="num"><b>${fmt(p.amount)}</b></td>
     <td><button class="mini-btn danger" onclick="deletePrivate(${p.id})" aria-label="${t("מחיקת ההוצאה הפרטית", "Delete private expense")} ${esc(p.descr)}">✕</button></td>
   </tr>`).join("");
@@ -1386,9 +1402,13 @@ function applyLang(){
   document.getElementById("mnNext")?.classList.toggle("arr-left", !en);
   document.getElementById("mnNext")?.classList.toggle("arr-right", en);
 
-  // כפתורי הבחירה בפאנל + הקישור במסך הכניסה
-  document.getElementById("langHe")?.setAttribute("aria-pressed", en ? "false" : "true");
-  document.getElementById("langEn")?.setAttribute("aria-pressed", en ? "true" : "false");
+  // כפתור השפה בכותרת מציג את שפת היעד + הקישור במסך הכניסה
+  const btn = document.getElementById("langBtn");
+  if(btn){
+    btn.textContent = en ? "עב" : "EN";
+    btn.title = en ? "עברית" : "English";
+    btn.setAttribute("aria-label", en ? "מעבר לעברית" : "Switch to English");
+  }
   const link = document.getElementById("authLangLink");
   if(link) link.textContent = en ? "עברית" : "English";
 
@@ -1506,7 +1526,7 @@ function fillSelect(el, opts, keepValue = true){
   if(prev && opts.some(o=>String(o.v)===prev)) el.value = prev;
 }
 const peopleOpts = () => S.members.map(m=>({v:m.id, t:esc(m.name)}));
-const catOpts = () => S.categories.map(c=>({v:c.id, t:`${catEmoji(c.name)} ${esc(c.name)}`}));
+const catOpts = () => S.categories.map(c=>({v:c.id, t:`${catEmoji(c.name)} ${esc(dn(c.name))}`}));
 
 function meterColor(r){ return r>1 ? "var(--critical)" : r>=0.85 ? "var(--warn)" : "var(--accent)"; }
 function meterNote(r){
@@ -1561,7 +1581,7 @@ function renderDash(){
   const rows = S.categories.filter(c=>c.budget>0)
     .map(c=>({c, r:c.spent/c.budget})).sort((a,b)=>b.r-a.r);
   document.getElementById("dashMeters").innerHTML =
-    rows.length ? rows.map(x=>meterHTML(`${catEmoji(x.c.name)} ${esc(x.c.name)}`, x.c.spent, x.c.budget)).join("")
+    rows.length ? rows.map(x=>meterHTML(`${catEmoji(x.c.name)} ${esc(dn(x.c.name))}`, x.c.spent, x.c.budget)).join("")
                 : `<div class="empty"><span class="e">🎯</span>${t('אין קטגוריות עם תקציב — מגדירים בלשונית "תקציבים"', 'No categories with a budget — set them on the "Budgets" tab')}</div>`;
 
   const myChart = P.chart;
@@ -1580,7 +1600,7 @@ function renderDash(){
   const todayDay = new Date().getDate();
   document.getElementById("dashBills").innerHTML =
     unpaid.length ? unpaid.map(b=>`<div class="list-item">
-        <div class="grow">${esc(b.name)} <span class="meta">${t(`· יום ${b.due_day} בחודש`, `· day ${b.due_day} of the month`)}</span></div>
+        <div class="grow">${esc(dn(b.name))} <span class="meta">${t(`· יום ${b.due_day} בחודש`, `· day ${b.due_day} of the month`)}</span></div>
         ${isCurMonth && todayDay>b.due_day ? `<span class="badge overdue">${t("באיחור", "Overdue")}</span>` : ''}
         <span class="meta" style="font-variant-numeric:tabular-nums">${fmt(b.amount)}</span>
       </div>`).join("") : `<div class="empty"><span class="e">🎉</span>${t("כל החשבונות של החודש שולמו", "All of this month's bills are paid")}</div>`;
@@ -1607,7 +1627,7 @@ function renderExpenses(){
   document.getElementById("expTable").innerHTML = mine.map(e=>`<tr>
     <td class="num">${heDate(e.date)}</td>
     <td>${esc(e.descr)}${e.my_share!==e.amount ? `<div class="meta">${t("חלקי מתוך", "my part of")} ${fmt(e.amount)}</div>` : ""}</td>
-    <td><span class="badge">${catEmoji(e.category)} ${esc(e.category)}</span></td>
+    <td><span class="badge">${catEmoji(e.category)} ${esc(dn(e.category))}</span></td>
     <td class="num"><b>${fmt(e.my_share)}</b></td>
     <td>${who(e.payer_id)}</td>
     <td style="font-size:12.5px;color:var(--ink2)">${splitLabel(e.split_type)}</td>
@@ -1647,7 +1667,7 @@ function renderBudgets(){
   document.getElementById("budgetList").innerHTML = S.categories.map(c=>{
     const r = c.budget>0 ? c.spent/c.budget : 0;
     return `<div class="meter-row" style="grid-template-columns:minmax(90px,150px) 110px 1fr auto">
-      <div class="name">${catEmoji(c.name)} ${esc(c.name)} ${meterNote(r)}</div>
+      <div class="name">${catEmoji(c.name)} ${esc(dn(c.name))} ${meterNote(r)}</div>
       <input type="number" min="0" step="50" value="${c.budget}" onchange="setBudget(${c.id}, this.value)" style="padding:6px 10px">
       <div class="meter" style="--m:${meterColor(r)}"><div class="meter-fill" style="width:${Math.min(100,r*100)}%"></div></div>
       <div style="display:flex; gap:8px; align-items:center">
@@ -1679,7 +1699,7 @@ function renderBills(){
   document.getElementById("billsList").innerHTML = S.bills.length ? S.bills.map(b=>{
     const overdue = !b.paid && isCurMonth && todayDay > b.due_day;
     return `<div class="list-item">
-      <div class="grow">${esc(b.name)} <span class="meta">· ${t("יום", "day")} ${b.due_day} · ${catEmoji(b.category)} ${esc(b.category)}</span></div>
+      <div class="grow">${esc(dn(b.name))} <span class="meta">· ${t("יום", "day")} ${b.due_day} · ${catEmoji(b.category)} ${esc(dn(b.category))}</span></div>
       <span class="meta" style="font-variant-numeric:tabular-nums">${fmt(b.amount)}</span>
       ${b.paid
         ? `<span class="badge paid">${t("✓ שולם ע״י", "✓ Paid by")} ${esc(b.paid.payer)}</span>
@@ -1696,8 +1716,8 @@ function renderBills(){
 function renderChores(){
   document.getElementById("choresList").innerHTML = S.chores.length ? S.chores.map(c=>`
     <div class="list-item">
-      <div class="grow">${esc(c.name)}
-        <span class="meta">· ${esc(c.freq)}${c.last_done?` · ${t("בוצע לאחרונה", "last done")} ${heDate(c.last_done)}`:""}</span></div>
+      <div class="grow">${esc(dn(c.name))}
+        <span class="meta">· ${esc(dn(c.freq))}${c.last_done?` · ${t("בוצע לאחרונה", "last done")} ${heDate(c.last_done)}`:""}</span></div>
       <span class="badge" style="display:inline-flex; align-items:center; gap:5px">${t("תור של", "Turn of")} ${avatar(c.assignee_id,"sm")} ${esc(c.assignee)}</span>
       <button class="mini-btn" onclick="doneChore(${c.id})">${t("בוצע ✓", "Done ✓")}</button>
       <button class="mini-btn danger" onclick="deleteChore(${c.id})" aria-label="${t("מחיקת המטלה", "Delete chore")} ${esc(c.name)}">✕</button>
