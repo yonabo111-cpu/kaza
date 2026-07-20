@@ -88,9 +88,11 @@ model documented and tested end-to-end, Docker, and CI. The UI is **Hebrew
   alerts.
 - **Shopping list** — shared, with urgent flags; checked-off items convert into a
   shared expense in one click.
-- **Recipe → shopping list 🍝** — type a dish in free-form Hebrew ("בא לי פסטה
-  בולונז") and get its ingredients to review and add. ~30 common Israeli home
-  dishes are built in and work offline; anything else is resolved by Claude when
+- **Recipe → shopping list 🍝** — type a dish in free-form Hebrew or English
+  ("בא לי פסטה בולונז", "i feel like some ramen") and get its ingredients to
+  review and add. A curated cookbook of **250+ home dishes** (1,000+ searchable
+  Hebrew/English names, quantities tuned for a 2-3 person household) is built in
+  and works fully offline; anything else is resolved by Claude when
   `ANTHROPIC_API_KEY` is set (and cached, so each dish is paid for once).
 - **Recurring bills** — rent, utilities, etc. with due days; marking one paid
   auto-creates an equally-split expense. Overdue bills are flagged.
