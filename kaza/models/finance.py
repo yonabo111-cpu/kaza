@@ -48,6 +48,17 @@ def delete_category(category_id: int, household_id: int) -> None:
     )
 
 
+def get_category(category_id: int, household_id: int) -> Row | None:
+    """Return a category row if it belongs to the household."""
+    return (
+        get_db()
+        .execute(
+            "SELECT * FROM categories WHERE id=? AND household_id=?", (category_id, household_id)
+        )
+        .fetchone()
+    )
+
+
 def category_exists(category_id: int, household_id: int) -> bool:
     """True if the category belongs to the household."""
     return (
@@ -281,22 +292,36 @@ def recent_settlements(household_id: int, limit: int = 8) -> list[Row]:
 # ----------------------------------------------------------------------- bills
 
 
-def bills_for(household_id: int) -> list[Row]:
-    """Return the household's bills ordered by due day."""
+def bills_for(household_id: int, user_id: int) -> list[Row]:
+    """Return the household's bills visible to ``user_id``, ordered by due day.
+
+    Private bills (``bill_type='private'``) are returned only to their owner.
+    """
     return (
         get_db()
-        .execute("SELECT * FROM bills WHERE household_id=? ORDER BY due_day, id", (household_id,))
+        .execute(
+            "SELECT * FROM bills WHERE household_id=?"
+            " AND (bill_type != 'private' OR owner_id=?) ORDER BY due_day, id",
+            (household_id, user_id),
+        )
         .fetchall()
     )
 
 
 def create_bill(
-    household_id: int, name: str, amount: float, due_day: int, category_id: int
+    household_id: int,
+    name: str,
+    amount: float,
+    due_day: int,
+    category_id: int,
+    bill_type: str = "equal",
+    owner_id: int | None = None,
 ) -> None:
-    """Insert a recurring bill."""
+    """Insert a recurring bill (``owner_id`` is set for private bills)."""
     get_db().execute(
-        "INSERT INTO bills(household_id,name,amount,due_day,category_id) VALUES (?,?,?,?,?)",
-        (household_id, name, amount, due_day, category_id),
+        "INSERT INTO bills(household_id,name,amount,due_day,category_id,bill_type,owner_id)"
+        " VALUES (?,?,?,?,?,?,?)",
+        (household_id, name, amount, due_day, category_id, bill_type, owner_id),
     )
 
 
@@ -309,66 +334,82 @@ def get_bill(bill_id: int, household_id: int) -> Row | None:
     )
 
 
+def update_bill(bill_id: int, household_id: int, amount: float | None, due_day: int | None) -> None:
+    """Update a bill's amount and/or due day."""
+    if amount is not None:
+        get_db().execute(
+            "UPDATE bills SET amount=? WHERE id=? AND household_id=?",
+            (amount, bill_id, household_id),
+        )
+    if due_day is not None:
+        get_db().execute(
+            "UPDATE bills SET due_day=? WHERE id=? AND household_id=?",
+            (due_day, bill_id, household_id),
+        )
+
+
 def delete_bill(bill_id: int, household_id: int) -> None:
     """Delete a recurring bill (its recorded expenses remain)."""
     get_db().execute("DELETE FROM bills WHERE id=? AND household_id=?", (bill_id, household_id))
 
 
-def payment_exists(bill_id: int, month: str) -> bool:
-    """True if the bill is already marked paid for ``month``."""
-    return (
-        get_db()
-        .execute("SELECT 1 FROM bill_payments WHERE bill_id=? AND month=?", (bill_id, month))
-        .fetchone()
-        is not None
-    )
+def payment_exists(bill_id: int, month: str, payer_id: int | None = None) -> bool:
+    """True if the bill is paid for ``month`` (by ``payer_id``, if given)."""
+    sql = "SELECT 1 FROM bill_payments WHERE bill_id=? AND month=?"
+    params: tuple = (bill_id, month)
+    if payer_id is not None:
+        sql += " AND payer_id=?"
+        params += (payer_id,)
+    return get_db().execute(sql, params).fetchone() is not None
 
 
-def record_payment(bill_id: int, month: str, payer_id: int, expense_id: int) -> None:
-    """Mark a bill paid for ``month``, linking the generated expense."""
+def record_payment(
+    bill_id: int,
+    month: str,
+    payer_id: int,
+    expense_id: int | None,
+    private_expense_id: int | None = None,
+) -> None:
+    """Mark a bill paid for ``month``, linking the generated ledger entry."""
     get_db().execute(
-        "INSERT INTO bill_payments(bill_id,month,payer_id,expense_id) VALUES (?,?,?,?)",
-        (bill_id, month, payer_id, expense_id),
+        "INSERT INTO bill_payments(bill_id,month,payer_id,expense_id,private_expense_id)"
+        " VALUES (?,?,?,?,?)",
+        (bill_id, month, payer_id, expense_id, private_expense_id),
     )
 
 
-def get_payment(bill_id: int, month: str, household_id: int) -> Row | None:
+def get_payment(
+    bill_id: int, month: str, household_id: int, payer_id: int | None = None
+) -> Row | None:
     """Return a bill payment row (joined to the household) for reversal."""
-    return (
-        get_db()
-        .execute(
-            "SELECT bp.* FROM bill_payments bp JOIN bills b ON b.id=bp.bill_id"
-            " WHERE bp.bill_id=? AND bp.month=? AND b.household_id=?",
-            (bill_id, month, household_id),
-        )
-        .fetchone()
+    sql = (
+        "SELECT bp.* FROM bill_payments bp JOIN bills b ON b.id=bp.bill_id"
+        " WHERE bp.bill_id=? AND bp.month=? AND b.household_id=?"
     )
+    params: tuple = (bill_id, month, household_id)
+    if payer_id is not None:
+        sql += " AND bp.payer_id=?"
+        params += (payer_id,)
+    return get_db().execute(sql, params).fetchone()
 
 
-def delete_payment(bill_id: int, month: str) -> None:
-    """Remove a bill's payment record for ``month``."""
-    get_db().execute("DELETE FROM bill_payments WHERE bill_id=? AND month=?", (bill_id, month))
+def delete_payment(bill_id: int, month: str, payer_id: int | None = None) -> None:
+    """Remove a bill's payment record for ``month`` (one payer, or all)."""
+    sql = "DELETE FROM bill_payments WHERE bill_id=? AND month=?"
+    params: tuple = (bill_id, month)
+    if payer_id is not None:
+        sql += " AND payer_id=?"
+        params += (payer_id,)
+    get_db().execute(sql, params)
 
 
-def payments_for_month(household_id: int, month: str) -> dict[int, Row]:
-    """Return ``{bill_id: payment_row}`` for a household in ``month``."""
-    return {
-        p["bill_id"]: p
-        for p in get_db().execute(
-            "SELECT * FROM bill_payments WHERE month=? AND bill_id IN"
-            " (SELECT id FROM bills WHERE household_id=?)",
-            (month, household_id),
-        )
-    }
-
-
-def paid_bill_ids(household_id: int, month: str) -> set[int]:
-    """Return the set of bill ids already paid in ``month``."""
-    return {
-        r["bill_id"]
-        for r in get_db().execute(
-            "SELECT bp.bill_id FROM bill_payments bp JOIN bills b ON b.id=bp.bill_id"
-            " WHERE bp.month=? AND b.household_id=?",
-            (month, household_id),
-        )
-    }
+def payments_for_month(household_id: int, month: str) -> dict[int, list[Row]]:
+    """Return ``{bill_id: [payment_rows]}`` for a household in ``month``."""
+    payments: dict[int, list[Row]] = {}
+    for p in get_db().execute(
+        "SELECT * FROM bill_payments WHERE month=? AND bill_id IN"
+        " (SELECT id FROM bills WHERE household_id=?)",
+        (month, household_id),
+    ):
+        payments.setdefault(p["bill_id"], []).append(p)
+    return payments

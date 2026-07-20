@@ -780,7 +780,7 @@
     <div class="card">
       <h2><span data-en="🧾 Recurring bills">🧾 חשבונות קבועים</span> <span class="note" id="billsMonthNote"></span></h2>
       <div id="billsList"></div>
-      <div class="hint" data-en='Marking a bill "paid" automatically records an expense split equally between all roommates.'>סימון "שולם" רושם אוטומטית הוצאה שמתחלקת שווה בשווה בין כל חברי הדירה.</div>
+      <div class="hint" data-en='Marking "paid" records the expense automatically: shared bills split equally, "each pays own" counts only for the payer, and private bills go to your private ledger.'>סימון "שולם" רושם הוצאה אוטומטית: חשבון משותף מתחלק שווה בשווה, "כל אחד משלם לבד" נרשם רק על המשלם, וחשבון אישי נכנס ליומן הפרטי שלך.</div>
     </div>
     <div class="card">
       <h2 data-en="➕ New recurring bill">➕ חשבון קבוע חדש</h2>
@@ -789,6 +789,13 @@
         <label class="f" data-en="Estimated amount (₪)">סכום משוער (₪)<input id="billAmount" type="number" step="0.01" min="0" required></label>
         <label class="f" data-en="Billing day of month">יום חיוב בחודש<input id="billDue" type="number" min="1" max="31" value="1" required></label>
         <label class="f" data-en="Category">קטגוריה<select id="billCat"></select></label>
+        <label class="f" data-en="Type">סוג
+          <select id="billType">
+            <option value="equal" data-en="Shared — split equally">משותף — מתחלק שווה בשווה</option>
+            <option value="individual" data-en="Shared — each pays their own">משותף — כל אחד משלם לבד</option>
+            <option value="private" data-en="🔒 Private — only I see it">🔒 אישי — רק אני רואה</option>
+          </select>
+        </label>
         <button class="btn ghost" type="submit" data-en="Add">הוספה</button>
       </form>
     </div>
@@ -1494,13 +1501,18 @@ function addBill(ev){
   ev.preventDefault();
   act(async ()=>{
     await api("/bills","POST",{name:billName.value, amount:parseFloat(billAmount.value)||0,
-      due_day:parseInt(billDue.value)||1, category_id:parseInt(billCat.value)});
+      due_day:parseInt(billDue.value)||1, category_id:parseInt(billCat.value),
+      bill_type:document.getElementById("billType").value});
     ev.target.reset();
     document.getElementById("billDue").value = 1;
   });
 }
 const payBill = (id,payer_id) => act(()=>api(`/bills/${id}/pay`,"POST",{month:viewMonth, payer_id}));
-const unpayBill = id => act(()=>api(`/bills/${id}/unpay`,"POST",{month:viewMonth}));
+const unpayBill = (id,payer_id) => act(()=>api(`/bills/${id}/unpay`,"POST",{month:viewMonth, payer_id}));
+const patchBill = (id,field,val) => act(()=>api("/bills/"+id,"PATCH",{[field]: parseFloat(val)||0}));
+/* חשבון נחשב "שולם" מנקודת המבט שלי: משותף — ברגע ששולם ע"י מישהו;
+   "כל אחד לבד" ואישי — רק כשאני שילמתי */
+const billPaidForMe = b => b.type==="equal" ? !!b.paid : (b.payments||[]).some(p=>p.payer_id===S.user.id);
 const deleteBill = async id => { if(await uiConfirm(t("למחוק את החשבון הקבוע? הוצאות שכבר נרשמו יישארו.","Delete this recurring bill? Already-recorded expenses stay."),t("מחיקה","Delete"),true)) act(()=>api("/bills/"+id,"DELETE")); };
 
 /* ================= chores ================= */
@@ -1570,7 +1582,7 @@ function renderDash(){
 
   const openItems = S.shopping.filter(i=>!i.done);
   const urgent = openItems.filter(i=>i.urgent).length;
-  const paidCount = S.bills.filter(b=>b.paid).length;
+  const paidCount = S.bills.filter(billPaidForMe).length;
   const totalBudget = S.categories.reduce((s,c)=>s+c.budget,0);
 
   document.getElementById("dashTiles").innerHTML = `
@@ -1602,7 +1614,7 @@ function renderDash(){
   document.getElementById("dashChartX").innerHTML =
     myChart.map(c=>`<span>${new Date(c.month+"-01T00:00").toLocaleDateString(LOCALE(),{month:"short"})}</span>`).join("");
 
-  const unpaid = S.bills.filter(b=>!b.paid);
+  const unpaid = S.bills.filter(b=>!billPaidForMe(b));
   const isCurMonth = viewMonth===localToday().slice(0,7);
   const todayDay = new Date().getDate();
   document.getElementById("dashBills").innerHTML =
@@ -1704,17 +1716,46 @@ function renderBills(){
   const isCurMonth = viewMonth===localToday().slice(0,7);
   const todayDay = new Date().getDate();
   document.getElementById("billsList").innerHTML = S.bills.length ? S.bills.map(b=>{
-    const overdue = !b.paid && isCurMonth && todayDay > b.due_day;
-    return `<div class="list-item">
-      <div class="grow">${esc(dn(b.name))} <span class="meta">· ${t("יום", "day")} ${b.due_day} · ${catEmoji(b.category)} ${esc(dn(b.category))}</span></div>
-      <span class="meta" style="font-variant-numeric:tabular-nums">${fmt(b.amount)}</span>
-      ${b.paid
+    const overdue = !billPaidForMe(b) && isCurMonth && todayDay > b.due_day;
+    const typeBadge = b.type==="private"
+        ? `<span class="badge">🔒 ${t("אישי", "Private")}</span>`
+      : b.type==="individual"
+        ? `<span class="badge">${t("כל אחד לבד", "Each pays own")}</span>` : "";
+
+    let payArea;
+    if(b.type==="individual"){
+      // כפתור לכל שותפ/ה: ✓ ירוק אם שילמו (לחיצה מבטלת), אחרת "שילם/ה"
+      payArea = `<span class="row-actions">${S.members.map(m=>
+        (b.payments||[]).some(p=>p.payer_id===m.id)
+          ? `<button class="mini-btn" style="border-color:var(--good); color:var(--good-text)"
+               onclick="unpayBill(${b.id},${m.id})" title="${t("ביטול התשלום", "Undo payment")}">${avatar(m.id,"sm")} ✓</button>`
+          : `<button class="mini-btn" onclick="payBill(${b.id},${m.id})">${avatar(m.id,"sm")} ${t("שילם/ה", "paid")}</button>`
+      ).join("")}</span>`;
+    } else if(b.type==="private"){
+      payArea = billPaidForMe(b)
+        ? `<span class="badge paid">${t("✓ שולם", "✓ Paid")}</span>
+           <button class="mini-btn" onclick="unpayBill(${b.id})">${t("ביטול", "Undo")}</button>`
+        : `<button class="mini-btn" onclick="payBill(${b.id},${S.user.id})">${t("שילמתי ✓", "I paid ✓")}</button>`;
+    } else {
+      payArea = b.paid
         ? `<span class="badge paid">${t("✓ שולם ע״י", "✓ Paid by")} ${esc(b.paid.payer)}</span>
            <button class="mini-btn" onclick="unpayBill(${b.id})">${t("ביטול", "Undo")}</button>`
-        : `${overdue?`<span class="badge overdue">${t("באיחור", "Overdue")}</span>`:""}
-           <span class="row-actions">${S.members.map(m=>
-              `<button class="mini-btn" onclick="payBill(${b.id},${m.id})">${avatar(m.id,"sm")} ${t("שילם/ה", "paid")}</button>`).join("")}
-           </span>`}
+        : `<span class="row-actions">${S.members.map(m=>
+            `<button class="mini-btn" onclick="payBill(${b.id},${m.id})">${avatar(m.id,"sm")} ${t("שילם/ה", "paid")}</button>`).join("")}
+          </span>`;
+    }
+
+    return `<div class="list-item">
+      <div class="grow">${esc(dn(b.name))} ${typeBadge} <span class="meta">· ${catEmoji(b.category)} ${esc(dn(b.category))}</span></div>
+      <span class="meta" style="display:inline-flex; align-items:center; gap:4px">
+        <input type="number" step="0.01" min="0" value="${b.amount}" onchange="patchBill(${b.id},'amount',this.value)"
+          style="width:76px; padding:4px 6px" aria-label="${t("סכום (₪)", "Amount (₪)")}" title="${t("סכום (₪)", "Amount (₪)")}">
+        · ${t("יום", "day")}
+        <input type="number" min="1" max="31" value="${b.due_day}" onchange="patchBill(${b.id},'due_day',this.value)"
+          style="width:52px; padding:4px 6px" aria-label="${t("יום חיוב בחודש", "Billing day of month")}" title="${t("יום חיוב", "Billing day")}">
+      </span>
+      ${overdue?`<span class="badge overdue">${t("באיחור", "Overdue")}</span>`:""}
+      ${payArea}
       <button class="mini-btn danger" onclick="deleteBill(${b.id})" aria-label="${t("מחיקת החשבון", "Delete bill")} ${esc(b.name)}">✕</button>
     </div>`;
   }).join("") : `<div class="empty"><span class="e">🧾</span>${t("אין חשבונות קבועים — מוסיפים למטה", "No recurring bills — add one below")}</div>`;

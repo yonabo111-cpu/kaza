@@ -66,7 +66,7 @@ def build_state(household_id: int, user: Row, month: str) -> dict[str, Any]:
         "transfers": finance_service.suggest_transfers(balances),
         "settlements": _build_settlements(household_id, names),
         "shopping": _build_shopping(household_id, names),
-        "bills": _build_bills(household_id, month, cat_names, names),
+        "bills": _build_bills(household_id, user["id"], month, cat_names, names),
         "chores": _build_chores(household_id, names),
         "chart": [{"month": m, "total": totals.get(m, 0)} for m in chart_months],
         "total": totals.get(month, 0),
@@ -151,12 +151,19 @@ def _build_shopping(household_id: int, names: dict) -> list[dict]:
     ]
 
 
-def _build_bills(household_id: int, month: str, cat_names: dict, names: dict) -> list[dict]:
-    """Return bills with their paid status for the month resolved."""
+def _build_bills(
+    household_id: int, user_id: int, month: str, cat_names: dict, names: dict
+) -> list[dict]:
+    """Return the bills visible to ``user_id`` with paid status for the month.
+
+    ``paid`` keeps the single-payment shape for equal/private bills; the
+    full per-member list is exposed as ``payments`` for individual bills.
+    """
     payments = finance_repo.payments_for_month(household_id, month)
     bills = []
-    for b in finance_repo.bills_for(household_id):
-        payment = payments.get(b["id"])
+    for b in finance_repo.bills_for(household_id, user_id):
+        bill_payments = payments.get(b["id"], [])
+        first = bill_payments[0] if bill_payments else None
         bills.append(
             {
                 "id": b["id"],
@@ -165,11 +172,16 @@ def _build_bills(household_id: int, month: str, cat_names: dict, names: dict) ->
                 "due_day": b["due_day"],
                 "category_id": b["category_id"],
                 "category": cat_names.get(b["category_id"], "—"),
+                "type": b["bill_type"],
                 "paid": (
-                    {"payer_id": payment["payer_id"], "payer": names.get(payment["payer_id"], "?")}
-                    if payment
+                    {"payer_id": first["payer_id"], "payer": names.get(first["payer_id"], "?")}
+                    if first
                     else None
                 ),
+                "payments": [
+                    {"payer_id": p["payer_id"], "payer": names.get(p["payer_id"], "?")}
+                    for p in bill_payments
+                ],
             }
         )
     return bills

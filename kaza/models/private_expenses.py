@@ -12,10 +12,16 @@ from kaza.db import Row, get_db
 
 def create(user_id: int, date: str, descr: str, amount: float, category: str) -> None:
     """Add a private expense owned by ``user_id``."""
-    get_db().execute(
+    create_returning_id(user_id, date, descr, amount, category)
+
+
+def create_returning_id(user_id: int, date: str, descr: str, amount: float, category: str) -> int:
+    """Add a private expense and return its row id (used by private bills)."""
+    cur = get_db().execute(
         "INSERT INTO private_expenses(user_id,date,descr,amount,category) VALUES (?,?,?,?,?)",
         (user_id, date, descr, amount, category),
     )
+    return cur.lastrowid
 
 
 def delete(private_id: int, user_id: int) -> int:

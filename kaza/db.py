@@ -84,14 +84,18 @@ CREATE TABLE IF NOT EXISTS bills(
   name TEXT NOT NULL,
   amount REAL NOT NULL DEFAULT 0,
   due_day INTEGER NOT NULL DEFAULT 1,
-  category_id INTEGER REFERENCES categories(id)
+  category_id INTEGER REFERENCES categories(id),
+  bill_type TEXT NOT NULL DEFAULT 'equal'
+    CHECK(bill_type IN ('equal','individual','private')),
+  owner_id INTEGER REFERENCES users(id)
 );
 CREATE TABLE IF NOT EXISTS bill_payments(
   bill_id INTEGER NOT NULL REFERENCES bills(id) ON DELETE CASCADE,
   month TEXT NOT NULL,
   payer_id INTEGER NOT NULL REFERENCES users(id),
   expense_id INTEGER REFERENCES expenses(id),
-  PRIMARY KEY(bill_id, month)
+  private_expense_id INTEGER REFERENCES private_expenses(id),
+  PRIMARY KEY(bill_id, month, payer_id)
 );
 CREATE TABLE IF NOT EXISTS chores(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -191,3 +195,32 @@ def _run_migrations(conn: sqlite3.Connection) -> None:
     user_cols = [row[1] for row in conn.execute("PRAGMA table_info(users)")]
     if "personal_budget" not in user_cols:
         conn.execute("ALTER TABLE users ADD COLUMN personal_budget REAL NOT NULL DEFAULT 0")
+
+    # Bill types: 'equal' (one payer, split between all), 'individual' (each
+    # member pays their own), 'private' (visible to its owner only).
+    bill_cols = [row[1] for row in conn.execute("PRAGMA table_info(bills)")]
+    if "bill_type" not in bill_cols:
+        conn.execute("ALTER TABLE bills ADD COLUMN bill_type TEXT NOT NULL DEFAULT 'equal'")
+    if "owner_id" not in bill_cols:
+        conn.execute("ALTER TABLE bills ADD COLUMN owner_id INTEGER REFERENCES users(id)")
+
+    # bill_payments: individual bills need one payment row per member per
+    # month, so the primary key must include payer_id; private-bill payments
+    # link to the private ledger instead of the shared expenses table.
+    payment_cols = [row[1] for row in conn.execute("PRAGMA table_info(bill_payments)")]
+    if "private_expense_id" not in payment_cols:
+        conn.execute("ALTER TABLE bill_payments RENAME TO bill_payments_old")
+        conn.execute(
+            "CREATE TABLE bill_payments("
+            " bill_id INTEGER NOT NULL REFERENCES bills(id) ON DELETE CASCADE,"
+            " month TEXT NOT NULL,"
+            " payer_id INTEGER NOT NULL REFERENCES users(id),"
+            " expense_id INTEGER REFERENCES expenses(id),"
+            " private_expense_id INTEGER REFERENCES private_expenses(id),"
+            " PRIMARY KEY(bill_id, month, payer_id))"
+        )
+        conn.execute(
+            "INSERT INTO bill_payments(bill_id, month, payer_id, expense_id)"
+            " SELECT bill_id, month, payer_id, expense_id FROM bill_payments_old"
+        )
+        conn.execute("DROP TABLE bill_payments_old")

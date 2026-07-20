@@ -36,7 +36,7 @@ def build_notifications(household_id: int, user_id: int) -> list[dict]:
     month = today.strftime("%Y-%m")
     out: list[dict] = []
 
-    _bill_notifications(household_id, today, month, out)
+    _bill_notifications(household_id, user_id, today, month, out)
     _budget_notifications(household_id, month, out)
     _personal_budget_notifications(household_id, user_id, month, out)
     _debt_notification(household_id, user_id, month, out)
@@ -47,11 +47,21 @@ def build_notifications(household_id: int, user_id: int) -> list[dict]:
     return out
 
 
-def _bill_notifications(household_id: int, today: date, month: str, out: list[dict]) -> None:
-    """Flag unpaid bills that are overdue or due within three days."""
-    paid = finance_repo.paid_bill_ids(household_id, month)
-    for bill in finance_repo.bills_for(household_id):
-        if bill["id"] in paid:
+def _bill_notifications(
+    household_id: int, user_id: int, today: date, month: str, out: list[dict]
+) -> None:
+    """Flag unpaid bills that are overdue or due within three days.
+
+    Equal bills count as paid once anyone paid; individual and private bills
+    count as paid for this user only once *they* paid.
+    """
+    payments = finance_repo.payments_for_month(household_id, month)
+    for bill in finance_repo.bills_for(household_id, user_id):
+        payers = {p["payer_id"] for p in payments.get(bill["id"], [])}
+        if bill["bill_type"] == "equal":
+            if payers:
+                continue
+        elif user_id in payers:
             continue
         if today.day > bill["due_day"]:
             out.append(
