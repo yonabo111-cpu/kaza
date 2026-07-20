@@ -312,6 +312,13 @@
     overflow:hidden;
   }
   body.notif-open .notif-panel{display:block; animation:fadein .15s ease;}
+  /* במובייל הפאנל היה נחתך בקצה המסך — הופך לגיליון קבוע ברוחב מלא */
+  @media (max-width:760px){
+    .notif-panel{
+      position:fixed; inset-inline:12px; top:calc(env(safe-area-inset-top) + 12px);
+      width:auto; max-width:none; max-height:72vh; overflow-y:auto;
+    }
+  }
   .notif-head{font-size:13.5px; font-weight:600; padding:12px 14px 9px; border-bottom:1px solid var(--grid);}
   .notif-item{
     display:flex; gap:9px; align-items:flex-start; padding:10px 12px;
