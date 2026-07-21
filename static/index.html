@@ -857,9 +857,11 @@
       <div id="hhInfo"></div>
       <div class="invite-code" id="inviteCode"></div>
       <div class="row-actions">
-        <button class="btn ghost" onclick="copyInvite()" data-en="📋 Copy invite code">📋 העתקת קוד ההזמנה</button>
+        <button class="btn" onclick="shareWhatsApp()" data-en="📲 Invite on WhatsApp">📲 הזמנה ב-WhatsApp</button>
+        <button class="btn ghost" onclick="copyInviteLink()" data-en="🔗 Copy invite link">🔗 העתקת קישור הזמנה</button>
+        <button class="btn ghost" onclick="copyInvite()" data-en="📋 Copy code">📋 העתקת הקוד</button>
       </div>
-      <div class="hint" data-en="New roommate? Have them sign up and enter this code — everything is shared instantly.">שותף/ה חדש/ה? שיירשמו לאפליקציה ויזינו את הקוד — וכל הנתונים משותפים מיד.</div>
+      <div class="hint" data-en="Send a roommate the link — they sign up and they're in, no code to type. The invite link and code both work.">שלחו לשותף/ה את הקישור — נרשמים ונכנסים, בלי להקליד קוד. הקישור והקוד עובדים שניהם.</div>
       <div class="row-actions" style="margin-top:14px">
         <button class="btn danger" onclick="leaveHousehold()" data-en="🚪 Leave home">🚪 עזיבת דירה</button>
       </div>
@@ -1047,6 +1049,12 @@ async function boot(){
       document.getElementById("setupHello").textContent =
         t(`היי ${me.user.name}! עוד צעד אחד — מחברים אותך לדירה.`,
           `Hi ${me.user.name}! One more step — let's connect you to a home.`);
+      if(JOIN_CODE){
+        document.getElementById("joinCode").value = JOIN_CODE.toUpperCase();
+        document.getElementById("setupHello").textContent =
+          t(`היי ${me.user.name}! הוזמנת לדירה — הקוד כבר ממולא, רק ללחוץ ״הצטרפות״.`,
+            `Hi ${me.user.name}! You've been invited — the code is filled in, just hit "Join".`);
+      }
       showScreen("setup");
     } else {
       showScreen("app");
@@ -1622,6 +1630,20 @@ function copyInvite(){
     .then(()=>toast(t("הקוד הועתק", "Code copied"), "success"))
     .catch(()=>toast(t("הקוד: ", "The code: ") + code, "info"));
 }
+function inviteLink(){
+  return location.origin + "/?join=" + (S?.household?.invite_code || "");
+}
+function shareWhatsApp(){
+  const msg = t(`הצטרפו לדירה שלנו ב״קאזה״ 🏠\nנרשמים דרך הקישור וזהו:\n${inviteLink()}`,
+                `Join our home on Kaza 🏠\nSign up through this link and you're in:\n${inviteLink()}`);
+  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener");
+}
+function copyInviteLink(){
+  const link = inviteLink();
+  navigator.clipboard?.writeText(link)
+    .then(()=>toast(t("הקישור הועתק", "Link copied"), "success"))
+    .catch(()=>toast(link, "info"));
+}
 
 /* ================= rendering ================= */
 function fillSelect(el, opts, keepValue = true){
@@ -1903,8 +1925,10 @@ applyLang();
 applyA11y();
 initCookieNote();
 
-// קישור איפוס סיסמה (?reset=טוקן) → מסך איפוס; אחרת אתחול רגיל
-const RESET_TOKEN = new URLSearchParams(location.search).get("reset");
+// פרמטרים בקישור: ?reset=טוקן → מסך איפוס; ?join=קוד → מילוי-מראש של קוד ההצטרפות
+const PARAMS = new URLSearchParams(location.search);
+const RESET_TOKEN = PARAMS.get("reset");
+const JOIN_CODE = PARAMS.get("join");
 if(RESET_TOKEN) showScreen("reset");
 else boot();
 </script>
