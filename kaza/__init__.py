@@ -17,7 +17,7 @@ from werkzeug.exceptions import HTTPException
 
 from kaza import db as db_module
 from kaza.config import STATIC_DIR, BaseConfig, get_config
-from kaza.logging_setup import configure_logging
+from kaza.logging_setup import configure_logging, init_sentry, register_request_logging
 from kaza.routes import register_blueprints
 from kaza.security import register_security
 
@@ -36,9 +36,11 @@ def create_app(config: BaseConfig | None = None) -> Flask:
     _apply_config(app, cfg)
 
     configure_logging(app)
+    init_sentry(app)
     db_module.init_db(app)
     app.teardown_appcontext(db_module.close_db)
 
+    register_request_logging(app)
     register_security(app)
     register_blueprints(app)
     _register_error_handlers(app)

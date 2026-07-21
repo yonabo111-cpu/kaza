@@ -40,6 +40,7 @@ SUITES = [
 # Suites that test standalone modules on their own throwaway data — no server.
 UNIT_SUITES = [
     "db_test.py",
+    "logging_test.py",
     "backup_test.py",
     "password_reset_test.py",
 ]

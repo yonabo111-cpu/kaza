@@ -71,6 +71,11 @@ class BaseConfig:
     # Absolute base URL used to build links inside emails (e.g. the live host).
     APP_BASE_URL = os.environ.get("APP_BASE_URL", "").rstrip("/")
 
+    # Error monitoring (optional). With no DSN, Sentry stays off. Needs the
+    # `monitoring` extra installed: pip install -e ".[monitoring]".
+    SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
+    SENTRY_TRACES_SAMPLE_RATE = float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0"))
+
     @property
     def db_path(self) -> str:
         """Absolute path to the SQLite database file."""

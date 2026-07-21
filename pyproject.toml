@@ -13,6 +13,7 @@ dependencies = [
 [project.optional-dependencies]
 postgres = ["psycopg[binary]>=3.1"]
 ai = ["anthropic>=0.40"]
+monitoring = ["sentry-sdk[flask]>=2.0"]
 dev = ["ruff>=0.6", "requests>=2.31"]
 
 [tool.ruff]

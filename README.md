@@ -222,6 +222,7 @@ All configuration is via environment variables — copy
 | `ANTHROPIC_API_KEY` | unset             | Optional — AI recipe lookup for dishes outside the cookbook    |
 | `CLAUDE_MODEL`      | `claude-opus-4-8` | Model for recipe lookup (`claude-haiku-4-5` = cheaper/faster)  |
 | `LOG_LEVEL`         | `INFO`            | Logging verbosity                                              |
+| `SENTRY_DSN`        | unset (off)       | Optional — error monitoring (needs the `monitoring` extra)     |
 
 ## Testing
 
