@@ -33,6 +33,7 @@ SUITES = [
     "security_test.py",
     "monthly_test.py",
     "bills_test.py",
+    "leave_test.py",
 ]
 
 # Suites that test standalone modules on their own throwaway data — no server.

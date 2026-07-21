@@ -45,6 +45,14 @@ def delete(chore_id: int, household_id: int) -> None:
     get_db().execute("DELETE FROM chores WHERE id=? AND household_id=?", (chore_id, household_id))
 
 
+def unassign_all(household_id: int, user_id: int) -> None:
+    """Clear ``user_id`` from any chore they are assigned to (used when leaving)."""
+    get_db().execute(
+        "UPDATE chores SET assignee_id=NULL WHERE household_id=? AND assignee_id=?",
+        (household_id, user_id),
+    )
+
+
 def assigned_to(household_id: int, user_id: int) -> list[Row]:
     """Return the names of chores currently assigned to ``user_id``."""
     return (

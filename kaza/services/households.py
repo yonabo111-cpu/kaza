@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 import secrets
+from datetime import date
 
 from kaza.models import bulletin as bulletin_repo
 from kaza.models import chores as chores_repo
 from kaza.models import finance as finance_repo
 from kaza.models import households as households_repo
+from kaza.models import users as users_repo
+from kaza.services import finance as finance_service
 
 # Invite-code alphabet without visually ambiguous characters (no 0/O, 1/I/L).
 _INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -76,6 +79,27 @@ def seed_household(household_id: int, creator_id: int) -> None:
 
     for name, freq in _SEED_CHORES:
         chores_repo.create(household_id, name, freq, creator_id)
+
+
+def leave_household(household_id: int, user_id: int) -> str | None:
+    """Remove ``user_id`` from a household. Return an error message, or ``None``.
+
+    Leaving is blocked while the member has an open balance — otherwise a
+    departing roommate could walk away from a debt (or an uncollectable credit).
+    A solo member always nets to zero and can leave freely. On success their
+    chore assignments are cleared and their private bills removed; shared
+    expense history stays intact for the remaining members.
+    """
+    month = date.today().strftime("%Y-%m")
+    balances = finance_service.compute_balances(household_id, month)
+    mine = next((b["balance"] for b in balances if b["id"] == user_id), 0)
+    if abs(mine) >= 0.01:
+        return "יש לך יתרה פתוחה בדירה — סגרו את ההתחשבנות לפני עזיבה"
+
+    chores_repo.unassign_all(household_id, user_id)
+    finance_repo.delete_private_bills_for(household_id, user_id)
+    users_repo.clear_household(user_id)
+    return None
 
 
 def bulletin_notes(household_id: int) -> list[dict]:

@@ -38,6 +38,11 @@ def set_household(user_id: int, household_id: int) -> None:
     )
 
 
+def clear_household(user_id: int) -> None:
+    """Detach ``user_id`` from their household (used when leaving)."""
+    get_db().execute("UPDATE users SET household_id=NULL, joined_at=NULL WHERE id=?", (user_id,))
+
+
 def set_personal_budget(user_id: int, budget: float) -> None:
     """Set the user's private monthly budget."""
     get_db().execute("UPDATE users SET personal_budget=? WHERE id=?", (budget, user_id))

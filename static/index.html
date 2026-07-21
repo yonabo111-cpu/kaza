@@ -826,6 +826,10 @@
         <button class="btn ghost" onclick="copyInvite()" data-en="📋 Copy invite code">📋 העתקת קוד ההזמנה</button>
       </div>
       <div class="hint" data-en="New roommate? Have them sign up and enter this code — everything is shared instantly.">שותף/ה חדש/ה? שיירשמו לאפליקציה ויזינו את הקוד — וכל הנתונים משותפים מיד.</div>
+      <div class="row-actions" style="margin-top:14px">
+        <button class="btn danger" onclick="leaveHousehold()" data-en="🚪 Leave home">🚪 עזיבת דירה</button>
+      </div>
+      <div class="hint" data-en="You can only leave once your balance is settled. Your shared history stays with the home.">אפשר לעזוב רק כשהיתרה שלך מאוזנת. ההיסטוריה המשותפת נשארת בדירה.</div>
     </div>
     <div class="card">
       <h2 data-en="👥 Roommates">👥 חברי הדירה</h2>
@@ -1057,6 +1061,16 @@ async function joinHousehold(ev){
   const errEl = document.getElementById("joinErr"); errEl.textContent = "";
   try{ await api("/household/join","POST",{code:joinCode.value}); await boot(); }
   catch(e){ errEl.textContent = e.message; }
+}
+async function leaveHousehold(){
+  if(!confirm(t("לעזוב את הדירה? תנותק/י מכל הנתונים המשותפים. אפשר להצטרף שוב עם קוד ההזמנה.",
+               "Leave this home? You'll be detached from all shared data. You can rejoin later with the invite code.")))
+    return;
+  try{
+    await api("/household/leave","POST",{});
+    S = null;
+    await boot();   // no household now → lands on the setup screen
+  }catch(e){ toast(e.message); }
 }
 
 /* ================= tabs ================= */

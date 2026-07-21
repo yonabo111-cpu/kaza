@@ -353,6 +353,18 @@ def delete_bill(bill_id: int, household_id: int) -> None:
     get_db().execute("DELETE FROM bills WHERE id=? AND household_id=?", (bill_id, household_id))
 
 
+def delete_private_bills_for(household_id: int, owner_id: int) -> None:
+    """Delete a member's private bills in a household (used when they leave).
+
+    Payment rows cascade with the bill; the personal ledger entries the payments
+    generated stay in the owner's private expenses.
+    """
+    get_db().execute(
+        "DELETE FROM bills WHERE household_id=? AND owner_id=? AND bill_type='private'",
+        (household_id, owner_id),
+    )
+
+
 def payment_exists(bill_id: int, month: str, payer_id: int | None = None) -> bool:
     """True if the bill is paid for ``month`` (by ``payer_id``, if given)."""
     sql = "SELECT 1 FROM bill_payments WHERE bill_id=? AND month=?"

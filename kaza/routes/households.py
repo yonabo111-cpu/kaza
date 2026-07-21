@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from flask import Blueprint, g, jsonify
 
-from kaza.auth import login_required
+from kaza.auth import household_required, login_required
 from kaza.models import households as households_repo
 from kaza.models import users as users_repo
 from kaza.services import households as households_service
@@ -40,4 +40,14 @@ def join_household():
     if row is None:
         return err("קוד הזמנה לא נמצא — בדקו שוב")
     users_repo.set_household(g.user["id"], row["id"])
+    return jsonify(ok=True)
+
+
+@bp.post("/api/household/leave")
+@household_required
+def leave_household():
+    """Leave the current household (blocked while the caller has an open balance)."""
+    error = households_service.leave_household(g.hid, g.user["id"])
+    if error:
+        return err(error, 409)
     return jsonify(ok=True)
