@@ -32,6 +32,11 @@ def delete(private_id: int, user_id: int) -> int:
     return cur.rowcount
 
 
+def delete_all_for(user_id: int) -> None:
+    """Delete a user's entire private ledger (used when deleting their account)."""
+    get_db().execute("DELETE FROM private_expenses WHERE user_id=?", (user_id,))
+
+
 def list_for_month(user_id: int, month: str) -> list[Row]:
     """Return the user's private expenses for ``month``, newest first."""
     return (

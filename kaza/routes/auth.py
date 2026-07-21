@@ -9,6 +9,7 @@ from kaza.auth import end_session, hash_password, login_required, start_session,
 from kaza.models import households as households_repo
 from kaza.models import users as users_repo
 from kaza.security import client_ip, login_ip_limiter, login_limiter, register_ip_limiter
+from kaza.services import households as households_service
 from kaza.utils import EMAIL_RE, body, clean_text, err
 
 bp = Blueprint("auth", __name__)
@@ -58,6 +59,17 @@ def login():
 @bp.post("/api/logout")
 def logout():
     """Clear the current session."""
+    end_session()
+    return jsonify(ok=True)
+
+
+@bp.post("/api/account/delete")
+@login_required
+def delete_account():
+    """Permanently delete the caller's account (blocked while they owe/are owed)."""
+    error = households_service.delete_account(g.user["id"])
+    if error:
+        return err(error, 409)
     end_session()
     return jsonify(ok=True)
 

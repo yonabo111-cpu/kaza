@@ -6,12 +6,17 @@ from __future__ import annotations
 import secrets
 from datetime import date
 
+from kaza.auth import hash_password
 from kaza.models import bulletin as bulletin_repo
 from kaza.models import chores as chores_repo
 from kaza.models import finance as finance_repo
 from kaza.models import households as households_repo
+from kaza.models import private_expenses as private_repo
 from kaza.models import users as users_repo
 from kaza.services import finance as finance_service
+
+# Placeholder name shown for an anonymized (deleted) account in shared history.
+_DELETED_NAME = "חשבון שנמחק"
 
 # Invite-code alphabet without visually ambiguous characters (no 0/O, 1/I/L).
 _INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -99,6 +104,45 @@ def leave_household(household_id: int, user_id: int) -> str | None:
     chores_repo.unassign_all(household_id, user_id)
     finance_repo.delete_private_bills_for(household_id, user_id)
     users_repo.clear_household(user_id)
+    return None
+
+
+def delete_account(user_id: int) -> str | None:
+    """Delete a user's account. Return an error message, or ``None`` on success.
+
+    The same settle-up guard as leaving applies. If the user is the last member
+    of their household, the whole household and its data are removed. Otherwise
+    they are detached and their personal data is erased. The user row itself is
+    hard-deleted when nothing references it anymore, or anonymized (name/email/
+    password scrubbed) when shared history still points at it — so a departed
+    roommate's expenses stay attributable without exposing who they were.
+    """
+    user = users_repo.get_by_id(user_id)
+    if user is None:
+        return None
+    household_id = user["household_id"]
+
+    if household_id:
+        month = date.today().strftime("%Y-%m")
+        balances = finance_service.compute_balances(household_id, month)
+        mine = next((b["balance"] for b in balances if b["id"] == user_id), 0)
+        if abs(mine) >= 0.01:
+            return "יש לך יתרה פתוחה בדירה — סגרו את ההתחשבנות לפני מחיקת החשבון"
+        others = [m for m in member_ids(household_id) if m != user_id]
+        chores_repo.unassign_all(household_id, user_id)
+        finance_repo.delete_private_bills_for(household_id, user_id)
+        users_repo.clear_household(user_id)
+        if not others:
+            households_repo.delete_cascade(household_id)
+
+    private_repo.delete_all_for(user_id)
+
+    if users_repo.is_referenced(user_id):
+        placeholder = f"deleted-{user_id}-{secrets.token_hex(4)}@kaza.invalid"
+        dead_hash = hash_password(secrets.token_hex(16))
+        users_repo.anonymize(user_id, _DELETED_NAME, placeholder, dead_hash)
+    else:
+        users_repo.delete(user_id)
     return None
 
 

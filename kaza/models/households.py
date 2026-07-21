@@ -32,6 +32,24 @@ def invite_code_exists(code: str) -> bool:
     )
 
 
+def delete_cascade(household_id: int) -> None:
+    """Delete a household and every row scoped to it (used on solo account delete).
+
+    Bills are removed before expenses so their payment rows (which reference
+    expenses) cascade away first; child rows fall away via ON DELETE CASCADE.
+    Callers must first detach any remaining member so no user row references it.
+    """
+    db = get_db()
+    db.execute("DELETE FROM bills WHERE household_id=?", (household_id,))  # cascades bill_payments
+    db.execute("DELETE FROM expenses WHERE household_id=?", (household_id,))  # cascades shares
+    db.execute("DELETE FROM settlements WHERE household_id=?", (household_id,))
+    db.execute("DELETE FROM shopping WHERE household_id=?", (household_id,))
+    db.execute("DELETE FROM chores WHERE household_id=?", (household_id,))
+    db.execute("DELETE FROM bulletin_board WHERE household_id=?", (household_id,))
+    db.execute("DELETE FROM categories WHERE household_id=?", (household_id,))
+    db.execute("DELETE FROM households WHERE id=?", (household_id,))
+
+
 def members(household_id: int) -> list[Row]:
     """Return household members ordered by join time then id."""
     return (

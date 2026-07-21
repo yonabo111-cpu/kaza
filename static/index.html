@@ -842,6 +842,10 @@
         <a class="btn ghost" style="text-decoration:none" href="/api/export" download data-en="⬇ Export backup (JSON)">⬇ ייצוא גיבוי (JSON)</a>
         <button class="btn ghost" onclick="doLogout(event)" data-en="Log out">התנתקות</button>
       </div>
+      <div class="row-actions" style="margin-top:14px">
+        <button class="btn danger" onclick="deleteAccount()" data-en="🗑 Delete account">🗑 מחיקת חשבון</button>
+      </div>
+      <div class="hint" data-en="Permanently erases your personal data. Shared expense history stays with your roommates (anonymized). This cannot be undone.">מוחק לצמיתות את הנתונים האישיים שלך. ההיסטוריה המשותפת נשארת אצל השותפים (בעילום שם). אי אפשר לבטל.</div>
     </div>
   </section>
 </main>
@@ -1070,6 +1074,16 @@ async function leaveHousehold(){
     await api("/household/leave","POST",{});
     S = null;
     await boot();   // no household now → lands on the setup screen
+  }catch(e){ toast(e.message); }
+}
+async function deleteAccount(){
+  if(!confirm(t("למחוק את החשבון לצמיתות? הנתונים האישיים שלך יימחקו. אי אפשר לבטל.",
+               "Delete your account permanently? Your personal data will be erased. This cannot be undone.")))
+    return;
+  try{
+    await api("/account/delete","POST",{});
+    S = null;
+    showScreen("auth");   // logged out after deletion
   }catch(e){ toast(e.message); }
 }
 

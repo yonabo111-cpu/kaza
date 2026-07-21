@@ -43,6 +43,45 @@ def clear_household(user_id: int) -> None:
     get_db().execute("UPDATE users SET household_id=NULL, joined_at=NULL WHERE id=?", (user_id,))
 
 
+def anonymize(user_id: int, name: str, email: str, pw_hash: str) -> None:
+    """Scrub a user's personal data in place, keeping the row for referential
+    integrity (their shared expense history must stay attributable)."""
+    get_db().execute(
+        "UPDATE users SET name=?, email=?, pw_hash=?, personal_budget=0,"
+        " household_id=NULL, joined_at=NULL WHERE id=?",
+        (name, email, pw_hash, user_id),
+    )
+
+
+def delete(user_id: int) -> None:
+    """Hard-delete a user row (only safe when nothing references it)."""
+    get_db().execute("DELETE FROM users WHERE id=?", (user_id,))
+
+
+def is_referenced(user_id: int) -> bool:
+    """True if any shared row still points at ``user_id``.
+
+    Used when deleting an account: if references remain (e.g. expenses in a
+    household the user already left), the row is anonymized instead of deleted.
+    """
+    row = (
+        get_db()
+        .execute(
+            "SELECT EXISTS(SELECT 1 FROM expenses WHERE payer_id=:u)"
+            " OR EXISTS(SELECT 1 FROM expense_shares WHERE user_id=:u)"
+            " OR EXISTS(SELECT 1 FROM settlements WHERE from_id=:u OR to_id=:u)"
+            " OR EXISTS(SELECT 1 FROM shopping WHERE added_by=:u)"
+            " OR EXISTS(SELECT 1 FROM bills WHERE owner_id=:u)"
+            " OR EXISTS(SELECT 1 FROM bill_payments WHERE payer_id=:u)"
+            " OR EXISTS(SELECT 1 FROM chores WHERE assignee_id=:u)"
+            " OR EXISTS(SELECT 1 FROM bulletin_board WHERE user_id=:u) AS ref",
+            {"u": user_id},
+        )
+        .fetchone()
+    )
+    return bool(row["ref"])
+
+
 def set_personal_budget(user_id: int, budget: float) -> None:
     """Set the user's private monthly budget."""
     get_db().execute("UPDATE users SET personal_budget=? WHERE id=?", (budget, user_id))
