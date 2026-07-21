@@ -392,6 +392,9 @@
   .modal-back.open .modal{transform:none;}
   .modal .msg{font-size:15px; margin-bottom:18px;}
   .modal-actions{display:flex; gap:8px; justify-content:flex-start;}
+  .welcome-step{display:flex; align-items:center; gap:11px; font-size:14px; line-height:1.45;}
+  .welcome-num{flex-shrink:0; width:24px; height:24px; border-radius:50%; background:var(--accent);
+    color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;}
   .loader{display:flex; align-items:center; justify-content:center; min-height:70vh;}
   .spinner{
     width:34px; height:34px; border-radius:50%;
@@ -491,6 +494,22 @@
     <div class="modal-actions">
       <button class="btn" id="modalOk">אישור</button>
       <button class="btn ghost" id="modalCancel" data-en="Cancel">ביטול</button>
+    </div>
+  </div>
+</div>
+<div class="modal-back" id="welcomeBack">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle" style="max-width:400px; text-align:center">
+    <div style="font-size:40px; margin-bottom:4px" aria-hidden="true">🎉</div>
+    <h2 id="welcomeTitle" style="margin:0 0 4px; font-size:20px" data-en="Welcome to Kaza!">ברוכים הבאים לקאזה!</h2>
+    <div class="msg" style="color:var(--muted); font-size:14px; margin-bottom:16px" data-en="Your home is ready — three quick things to get going:">הדירה שלך מוכנה — שלושה דברים קצרים כדי להתחיל:</div>
+    <div style="text-align:start; display:flex; flex-direction:column; gap:13px; margin-bottom:20px">
+      <div class="welcome-step"><span class="welcome-num" aria-hidden="true">1</span><span data-en="Invite your roommates — send the link, they sign up and they're in.">הזמינו את השותפים — שלחו את הקישור, הם נרשמים ונכנסים.</span></div>
+      <div class="welcome-step"><span class="welcome-num" aria-hidden="true">2</span><span data-en="Add your first expense — groceries, a bill, anything. Kaza splits it automatically.">הוסיפו הוצאה ראשונה — קניות, חשבון, מה שבא. קאזה מחלקת אוטומטית.</span></div>
+      <div class="welcome-step"><span class="welcome-num" aria-hidden="true">3</span><span data-en="See who owes whom — the dashboard always shows the balance.">ראו מי חייב למי — הדשבורד תמיד מציג את המאזן.</span></div>
+    </div>
+    <div class="modal-actions" style="flex-direction:column; gap:8px">
+      <button class="btn" onclick="welcomeInvite()" style="width:100%" data-en="📲 Invite roommates now">📲 הזמינו שותפים עכשיו</button>
+      <button class="btn ghost" id="welcomeStart" onclick="closeWelcome()" style="width:100%" data-en="Let's go 🚀">בואו נתחיל 🚀</button>
     </div>
   </div>
 </div>
@@ -1100,7 +1119,11 @@ async function doLogout(ev){
 async function createHousehold(ev){
   ev.preventDefault();
   const errEl = document.getElementById("hhErr"); errEl.textContent = "";
-  try{ await api("/household","POST",{name:hhName.value}); await boot(); }
+  try{
+    await api("/household","POST",{name:hhName.value});
+    await boot();
+    if(!localStorage.getItem("kaza-welcomed")) showWelcome();
+  }
   catch(e){ errEl.textContent = e.message; }
 }
 async function joinHousehold(ev){
@@ -1644,6 +1667,20 @@ function copyInviteLink(){
     .then(()=>toast(t("הקישור הועתק", "Link copied"), "success"))
     .catch(()=>toast(link, "info"));
 }
+function showWelcome(){
+  localStorage.setItem("kaza-welcomed", "1");
+  const back = document.getElementById("welcomeBack");
+  back.classList.add("open");
+  back._onKey = e => { if(e.key === "Escape") closeWelcome(); };
+  document.addEventListener("keydown", back._onKey);
+  document.getElementById("welcomeStart").focus();
+}
+function closeWelcome(){
+  const back = document.getElementById("welcomeBack");
+  back.classList.remove("open");
+  if(back._onKey){ document.removeEventListener("keydown", back._onKey); back._onKey = null; }
+}
+function welcomeInvite(){ shareWhatsApp(); }
 
 /* ================= rendering ================= */
 function fillSelect(el, opts, keepValue = true){
