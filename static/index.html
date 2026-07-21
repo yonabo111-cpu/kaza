@@ -1133,8 +1133,10 @@ async function joinHousehold(ev){
   catch(e){ errEl.textContent = e.message; }
 }
 async function leaveHousehold(){
-  if(!confirm(t("לעזוב את הדירה? תנותק/י מכל הנתונים המשותפים. אפשר להצטרף שוב עם קוד ההזמנה.",
-               "Leave this home? You'll be detached from all shared data. You can rejoin later with the invite code.")))
+  if(!await uiConfirm(
+      t("לעזוב את הדירה? תנותק/י מכל הנתונים המשותפים. אפשר להצטרף שוב עם קוד ההזמנה.",
+        "Leave this home? You'll be detached from all shared data. You can rejoin later with the invite code."),
+      t("עזיבה", "Leave"), true))
     return;
   try{
     await api("/household/leave","POST",{});
@@ -1143,8 +1145,10 @@ async function leaveHousehold(){
   }catch(e){ toast(e.message); }
 }
 async function deleteAccount(){
-  if(!confirm(t("למחוק את החשבון לצמיתות? הנתונים האישיים שלך יימחקו. אי אפשר לבטל.",
-               "Delete your account permanently? Your personal data will be erased. This cannot be undone.")))
+  if(!await uiConfirm(
+      t("למחוק את החשבון לצמיתות? הנתונים האישיים שלך יימחקו. אי אפשר לבטל.",
+        "Delete your account permanently? Your personal data will be erased. This cannot be undone."),
+      t("מחיקה", "Delete"), true))
     return;
   try{
     await api("/account/delete","POST",{});
