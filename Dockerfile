@@ -27,5 +27,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz').status==200 else 1)"
 
-# Serve with gunicorn (installed via requirements on Linux).
-CMD ["gunicorn", "wsgi:app", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "60"]
+# Serve with gunicorn (installed via requirements on Linux). One worker with
+# threads: SQLite writes and the in-process rate limiter both assume a single
+# process, and threads still give I/O concurrency. Scale to multiple workers
+# only alongside PostgreSQL and a shared rate-limit store.
+CMD ["gunicorn", "wsgi:app", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "4", "--timeout", "60"]

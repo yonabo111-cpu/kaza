@@ -45,7 +45,7 @@ class BaseConfig:
 
     # Where SQLite and the persisted secret live.
     DATA_DIR = os.environ.get("DATA_DIR", os.path.join(ROOT_DIR, "data"))
-    # Empty / "sqlite" → local SQLite file; a postgres URL switches drivers.
+    # Reserved for a future PostgreSQL driver; currently ignored (SQLite is used).
     DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
     # Session cookies: HttpOnly + SameSite=Lax on every environment.

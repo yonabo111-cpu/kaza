@@ -116,7 +116,7 @@ model documented and tested end-to-end, Docker, and CI. The UI is **Hebrew
 | Layer     | Technology                                                    |
 |-----------|---------------------------------------------------------------|
 | Backend   | Python 3.10+, Flask (application factory + blueprints)        |
-| Database  | SQLite (default) or PostgreSQL via `DATABASE_URL`             |
+| Database  | SQLite (WAL mode); PostgreSQL driver on the roadmap            |
 | Frontend  | Vanilla HTML/CSS/JS, single file, no framework, RTL + dark    |
 | Auth      | Werkzeug password hashing, signed session cookies             |
 | Tooling   | ruff (lint + format), pytest-style suites, GitHub Actions CI  |
@@ -218,7 +218,7 @@ All configuration is via environment variables — copy
 | `PORT`              | `5050`            | HTTP port                                                      |
 | `DATA_DIR`          | `./data`          | Where the SQLite DB and session secret live                    |
 | `SECRET_KEY`        | auto-generated    | Session signing key — **set explicitly in production**         |
-| `DATABASE_URL`      | unset (SQLite)    | PostgreSQL connection URL to switch drivers                    |
+| `DATABASE_URL`      | unset (SQLite)    | Reserved for a future PostgreSQL driver — currently ignored    |
 | `ANTHROPIC_API_KEY` | unset             | Optional — AI recipe lookup for dishes outside the cookbook    |
 | `CLAUDE_MODEL`      | `claude-opus-4-8` | Model for recipe lookup (`claude-haiku-4-5` = cheaper/faster)  |
 | `LOG_LEVEL`         | `INFO`            | Logging verbosity                                              |
@@ -326,9 +326,10 @@ tab), so a lost account can't take the data with it.
 
 ### Render / Railway / Fly
 
-A `Procfile` (`gunicorn wsgi:app`) and `Dockerfile` are included. On free tiers
-the filesystem is ephemeral — attach a persistent disk, or point `DATABASE_URL`
-at a managed PostgreSQL instance, so data survives redeploys.
+A `Procfile` (`gunicorn wsgi:app`) and `Dockerfile` are included. The app stores
+data in a SQLite file, and on free tiers the filesystem is ephemeral — attach a
+**persistent disk** for `DATA_DIR` so data survives redeploys. (A PostgreSQL
+driver, which would remove this constraint, is on the roadmap.)
 
 ## Security
 

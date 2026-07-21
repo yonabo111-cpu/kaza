@@ -2,25 +2,24 @@
 """Database access layer.
 
 A thin abstraction over the connection so the rest of the app is written
-against a single ``get_db()`` accessor. SQLite is the default; setting
-``DATABASE_URL`` to a ``postgres://`` URL selects PostgreSQL (wired here,
-schema-compatibility completed in a later phase). The connection is stored on
-Flask's request-scoped ``g`` and committed once per successful request.
+against a single ``get_db()`` accessor. The backend is SQLite (in WAL mode with
+a busy timeout, which handles the app's light concurrency well). The connection
+is stored on Flask's request-scoped ``g`` and committed once per successful
+request. A PostgreSQL driver is a roadmap item — ``DATABASE_URL`` is reserved
+for it but is not yet wired up.
 """
 
 from __future__ import annotations
 
-import os
 import sqlite3
 from typing import Any, Mapping
 
 from flask import Flask, current_app, g
 
-# A DB row behaves like a read-only mapping regardless of driver.
+# A DB row behaves like a read-only mapping.
 Row = Mapping[str, Any]
 
-# Full schema (idempotent). Kept SQLite-flavoured; the connection factory is
-# responsible for adapting it when another driver is selected.
+# Full schema (idempotent), SQLite-flavoured.
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS households(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -154,17 +153,17 @@ INDEXES = [
 ]
 
 
-def using_postgres() -> bool:
-    """True when a PostgreSQL connection URL is configured."""
-    url = os.environ.get("DATABASE_URL", "")
-    return url.startswith(("postgres://", "postgresql://"))
-
-
 def _connect_sqlite(path: str) -> sqlite3.Connection:
-    """Open a SQLite connection with row-mapping access and FK enforcement."""
+    """Open a SQLite connection with row mapping, FK enforcement, and a busy wait.
+
+    ``busy_timeout`` makes a connection wait (up to 5s) for a lock to clear
+    instead of failing immediately with "database is locked" — so brief write
+    contention between workers is absorbed rather than surfaced as an error.
+    """
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys=ON")
+    conn.execute("PRAGMA busy_timeout=5000")
     return conn
 
 
