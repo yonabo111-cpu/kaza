@@ -596,7 +596,7 @@
   <button data-tab="expenses" onclick="switchTab('expenses')"><span class="ico">💸</span><span data-en="Expenses">הוצאות</span></button>
   <button data-tab="personal" onclick="switchTab('personal')"><span class="ico">🔒</span><span data-en="Personal">אישי</span></button>
   <button data-tab="shopping" onclick="switchTab('shopping')"><span class="ico">🛒</span><span data-en="Shopping">קניות</span></button>
-  <button data-tab="budgets" class="tab-extra" onclick="switchTab('budgets')"><span class="ico">🎯</span><span data-en="Budgets">תקציבים</span></button>
+  <button data-tab="budgets" class="tab-extra" onclick="switchTab('budgets')"><span class="ico">🏷️</span><span data-en="Categories">קטגוריות</span></button>
   <button data-tab="bills" class="tab-extra" onclick="switchTab('bills')"><span class="ico">🧾</span><span data-en="Bills">חשבונות</span></button>
   <button data-tab="chores" class="tab-extra" onclick="switchTab('chores')"><span class="ico">🧽</span><span data-en="Chores">מטלות</span></button>
   <button data-tab="settings" class="tab-extra" onclick="switchTab('settings')"><span class="ico">⚙️</span><span data-en="Settings">הגדרות</span></button>
@@ -604,7 +604,7 @@
 </nav>
 <div class="sheet-back" onclick="toggleMore()"></div>
 <div class="sheet" id="moreSheet" role="menu" aria-label="לשוניות נוספות" data-en-aria="More tabs">
-  <button data-tab="budgets" onclick="switchTab('budgets')"><span class="ico">🎯</span><span data-en="Budgets">תקציבים</span></button>
+  <button data-tab="budgets" onclick="switchTab('budgets')"><span class="ico">🏷️</span><span data-en="Categories">קטגוריות</span></button>
   <button data-tab="bills" onclick="switchTab('bills')"><span class="ico">🧾</span><span data-en="Bills">חשבונות</span></button>
   <button data-tab="chores" onclick="switchTab('chores')"><span class="ico">🧽</span><span data-en="Chores">מטלות</span></button>
   <button data-tab="settings" onclick="switchTab('settings')"><span class="ico">⚙️</span><span data-en="Settings">הגדרות</span></button>
@@ -624,7 +624,7 @@
     </div>
     <div class="two-col">
       <div class="card">
-        <h2><span data-en="🎯 Budget vs. actual">🎯 תקציב מול ביצוע</span> <span class="note" id="dashBudgetMonth"></span></h2>
+        <h2><span data-en="🥧 Where my money went">🥧 על מה הוצאתי</span> <span class="note" id="dashBudgetMonth"></span></h2>
         <div id="dashMeters"></div>
       </div>
       <div class="card">
@@ -727,13 +727,13 @@
 
   <section class="tab" id="tab-budgets">
     <div class="card">
-      <h2><span data-en="🎯 Monthly budget by category">🎯 תקציב חודשי לפי קטגוריה</span> <span class="note" data-en="saved automatically">נשמר אוטומטית</span></h2>
+      <h2><span data-en="🏷️ Expense categories">🏷️ קטגוריות ההוצאות</span> <span class="note" data-en="shared by the whole home — used for expenses and bills">משותפות לכל הדירה — משמשות להוצאות ולחשבונות</span></h2>
       <div id="budgetList"></div>
       <form class="grid" style="margin-top:14px" onsubmit="addCategory(event)">
         <label class="f" data-en="New category">קטגוריה חדשה<input id="newCatName" required maxlength="40" placeholder="שם הקטגוריה" data-en-placeholder="Category name"></label>
-        <label class="f" data-en="Budget (₪)">תקציב (₪)<input id="newCatBudget" type="number" min="0" step="1" value="0"></label>
         <button class="btn ghost" type="submit" data-en="Add category">הוספת קטגוריה</button>
       </form>
+      <div class="hint" data-en="Your budget lives on the Personal tab — spending is measured against it, not against household budgets.">התקציב שלך נמצא בלשונית "אישי" — ההוצאות נמדדות מולו, לא מול תקציב דירתי.</div>
     </div>
   </section>
 
@@ -1209,11 +1209,10 @@ function renderPersonal(){
 function addCategory(ev){
   ev.preventDefault();
   act(async ()=>{
-    await api("/categories","POST",{name:newCatName.value, budget:parseFloat(newCatBudget.value)||0});
+    await api("/categories","POST",{name:newCatName.value, budget:0});
     ev.target.reset();
   });
 }
-const setBudget = (id,val) => act(()=>api("/categories/"+id,"PATCH",{budget:parseFloat(val)||0}));
 const deleteCategory = async id => { if(await uiConfirm(t("למחוק את הקטגוריה?","Delete this category?"),t("מחיקה","Delete"),true)) act(()=>api("/categories/"+id,"DELETE")); };
 
 /* ================= recipes → shopping ================= */
@@ -1583,7 +1582,7 @@ function renderDash(){
   const openItems = S.shopping.filter(i=>!i.done);
   const urgent = openItems.filter(i=>i.urgent).length;
   const paidCount = S.bills.filter(billPaidForMe).length;
-  const totalBudget = S.categories.reduce((s,c)=>s+c.budget,0);
+  const billsTotal = S.bills.reduce((s,b)=>s+b.amount,0);
 
   document.getElementById("dashTiles").innerHTML = `
     <div class="tile"><div class="label">${t("💸 ההוצאות שלי", "💸 My spending")} · ${monthLabel(viewMonth)}</div>
@@ -1594,14 +1593,26 @@ function renderDash(){
       <div class="delta ${urgent?'up-bad':''}">${urgent ? t(`${urgent} פריטים דחופים`, `${urgent} urgent items`) : t("פריטים ממתינים", "items waiting")}</div></div>
     <div class="tile"><div class="label">${t("🧾 חשבונות החודש", "🧾 This month's bills")}</div>
       <div class="value">${paidCount}/${S.bills.length}</div>
-      <div class="delta">${t("שולמו · סה״כ תקציב", "paid · total budget")} ${fmt(totalBudget)}</div></div>`;
+      <div class="delta">${t("שולמו · סה״כ", "paid · total")} ${fmt(billsTotal)}</div></div>`;
 
   document.getElementById("dashBudgetMonth").textContent = "· " + monthLabel(viewMonth);
-  const rows = S.categories.filter(c=>c.budget>0)
-    .map(c=>({c, r:c.spent/c.budget})).sort((a,b)=>b.r-a.r);
-  document.getElementById("dashMeters").innerHTML =
-    rows.length ? rows.map(x=>meterHTML(`${catEmoji(x.c.name)} ${esc(dn(x.c.name))}`, x.c.spent, x.c.budget)).join("")
-                : `<div class="empty"><span class="e">🎯</span>${t('אין קטגוריות עם תקציב — מגדירים בלשונית "תקציבים"', 'No categories with a budget — set them on the "Budgets" tab')}</div>`;
+  // ההתפלגות האישית: החלק שלי בהוצאות המשותפות + ההוצאות הפרטיות, לפי קטגוריה
+  const sums = {};
+  for(const e of S.expenses) if(e.my_share>0) sums[e.category] = (sums[e.category]||0) + e.my_share;
+  for(const p of P.expenses){ const c = p.category || t("אחר","Other"); sums[c] = (sums[c]||0) + p.amount; }
+  const rows = Object.entries(sums).sort((x,y)=>y[1]-x[1]);
+  const breakdownTotal = rows.reduce((s,r)=>s+r[1], 0);
+  const maxV = rows.length ? rows[0][1] : 1;
+  const budgetMeter = P.budget>0
+    ? meterHTML(`🎯 ${t("התקציב האישי שלי", "My personal budget")}`, myTotal, P.budget) : "";
+  document.getElementById("dashMeters").innerHTML = budgetMeter + (
+    rows.length ? rows.map(([name, v])=>`
+      <div class="meter-row" style="grid-template-columns:minmax(90px,150px) 1fr auto">
+        <div class="name">${catEmoji(name)} ${esc(dn(name))}</div>
+        <div class="meter" style="--m:var(--accent)"><div class="meter-fill" style="width:${Math.round(v/maxV*100)}%"></div></div>
+        <div class="nums">${fmt(v)} · ${Math.round(v/breakdownTotal*100)}%</div>
+      </div>`).join("")
+    : `<div class="empty"><span class="e">🌱</span>${t("אין עדיין הוצאות בחודש הזה", "No spending this month yet")}</div>`);
 
   const myChart = P.chart;
   const max = Math.max(...myChart.map(c=>c.total), 1);
@@ -1683,18 +1694,12 @@ function renderExpenses(){
 }
 
 function renderBudgets(){
-  document.getElementById("budgetList").innerHTML = S.categories.map(c=>{
-    const r = c.budget>0 ? c.spent/c.budget : 0;
-    return `<div class="meter-row" style="grid-template-columns:minmax(90px,150px) 110px 1fr auto">
-      <div class="name">${catEmoji(c.name)} ${esc(dn(c.name))} ${meterNote(r)}</div>
-      <input type="number" min="0" step="50" value="${c.budget}" onchange="setBudget(${c.id}, this.value)" style="padding:6px 10px">
-      <div class="meter" style="--m:${meterColor(r)}"><div class="meter-fill" style="width:${Math.min(100,r*100)}%"></div></div>
-      <div style="display:flex; gap:8px; align-items:center">
-        <span class="nums">${fmt(c.spent)}</span>
-        <button class="mini-btn danger" onclick="deleteCategory(${c.id})" title="${t("מחיקת קטגוריה", "Delete category")}" aria-label="${t("מחיקת הקטגוריה", "Delete category")} ${esc(c.name)}">✕</button>
-      </div>
-    </div>`;
-  }).join("");
+  document.getElementById("budgetList").innerHTML = S.categories.map(c=>`
+    <div class="list-item">
+      <div class="grow">${catEmoji(c.name)} ${esc(dn(c.name))}</div>
+      <span class="meta">${c.spent ? `${t("הוצאות הדירה החודש:", "home spend this month:")} ${fmt(c.spent)}` : ""}</span>
+      <button class="mini-btn danger" onclick="deleteCategory(${c.id})" title="${t("מחיקת קטגוריה", "Delete category")}" aria-label="${t("מחיקת הקטגוריה", "Delete category")} ${esc(c.name)}">✕</button>
+    </div>`).join("");
 }
 
 function renderShopping(){

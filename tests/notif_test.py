@@ -56,8 +56,7 @@ st = a.get(f"{BASE}/state?month={MONTH}").json()
 check("state includes notifications", isinstance(st.get("notifications"), list))
 cats = st["categories"]
 
-# --- תקציב דירה: חריגה והתקרבות ---
-a.patch(f"{BASE}/categories/{cats[0]['id']}", json={"budget": 10}).raise_for_status()
+# --- הוצאות בסיס (ההוצאה השווה יוצרת את החוב לבדיקה בהמשך) ---
 a.post(
     f"{BASE}/expenses",
     json={
@@ -69,11 +68,10 @@ a.post(
         "split_type": "equal",
     },
 ).raise_for_status()
-a.patch(f"{BASE}/categories/{cats[1]['id']}", json={"budget": 100}).raise_for_status()
 a.post(
     f"{BASE}/expenses",
     json={
-        "descr": "כמעט בתקרה",
+        "descr": "הוצאה אישית",
         "amount": 90,
         "category_id": cats[1]["id"],
         "date": TODAY.isoformat(),
@@ -82,8 +80,7 @@ a.post(
     },
 ).raise_for_status()
 na = notifs(a)
-check("budget-over is critical", has(na, f"budget-over-{cats[0]['id']}-", "critical"), str(na))
-check("budget-near is warn", has(na, f"budget-near-{cats[1]['id']}-", "warn"))
+check("no household-budget notifications", not any(n["id"].startswith("budget-") for n in na))
 
 # --- חשבונות: נוצר חשבון שיום החיוב שלו היום → אזהרה ---
 a.post(

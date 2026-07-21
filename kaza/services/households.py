@@ -14,14 +14,15 @@ from kaza.models import households as households_repo
 _INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 _INVITE_LENGTH = 6
 
-# Default content created for a brand-new household.
+# Default content created for a brand-new household. Category budgets are 0 —
+# the app measures spending against each member's PERSONAL budget instead.
 _SEED_CATEGORIES = [
-    ("סופר ומזון", 1600),
-    ("אוכל בחוץ", 600),
-    ("בית וניקיון", 250),
-    ("חשבונות ודיור", 5500),
-    ("בילויים", 500),
-    ("אחר", 300),
+    ("סופר ומזון", 0),
+    ("אוכל בחוץ", 0),
+    ("בית וניקיון", 0),
+    ("חשבונות ודיור", 0),
+    ("בילויים", 0),
+    ("אחר", 0),
 ]
 _SEED_BILLS = [
     ("שכר דירה", 4500, 1),

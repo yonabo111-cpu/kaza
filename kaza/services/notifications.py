@@ -37,7 +37,6 @@ def build_notifications(household_id: int, user_id: int) -> list[dict]:
     out: list[dict] = []
 
     _bill_notifications(household_id, user_id, today, month, out)
-    _budget_notifications(household_id, month, out)
     _personal_budget_notifications(household_id, user_id, month, out)
     _debt_notification(household_id, user_id, month, out)
     _chore_notification(household_id, user_id, out)
@@ -82,37 +81,6 @@ def _bill_notifications(
                     "text": f"״{bill['name']}״ ({_ils(bill['amount'])}) "
                     f"לתשלום עד יום {bill['due_day']} בחודש",
                     "tab": "bills",
-                }
-            )
-
-
-def _budget_notifications(household_id: int, month: str, out: list[dict]) -> None:
-    """Flag household categories that are over or near their monthly budget."""
-    spent = finance_repo.spent_by_category(household_id, month)
-    for category in finance_repo.categories_for(household_id):
-        if category["budget"] <= 0:
-            continue
-        used = spent.get(category["id"], 0)
-        if used > category["budget"]:
-            out.append(
-                {
-                    "id": f"budget-over-{category['id']}-{month}",
-                    "severity": "critical",
-                    "icon": "🎯",
-                    "text": f"חריגה בתקציב ״{category['name']}״ — "
-                    f"{_ils(used)} מתוך {_ils(category['budget'])}",
-                    "tab": "budgets",
-                }
-            )
-        elif used >= _NEAR_LIMIT * category["budget"]:
-            out.append(
-                {
-                    "id": f"budget-near-{category['id']}-{month}",
-                    "severity": "warn",
-                    "icon": "🎯",
-                    "text": f"״{category['name']}״ מתקרב לתקרה — "
-                    f"{_ils(used)} מתוך {_ils(category['budget'])}",
-                    "tab": "budgets",
                 }
             )
 
