@@ -345,10 +345,12 @@ in **[SECURITY.md](SECURITY.md)**.
 - [ ] AI insights: monthly spend analysis, expensive-category detection, savings
       tips, shared-buy suggestions, a smart monthly summary
 - [ ] Complete the PostgreSQL driver path (SQLite remains the default)
-- [ ] Password reset via email, email verification
+- [ ] Email verification on sign-up
 - [ ] Downloadable monthly report
 - [x] Modular backend, security hardening, Docker, CI (done)
 - [x] Automated database snapshots + restore (`backup.py`) (done)
+- [x] Self-service leave-household & account deletion (done)
+- [x] Password reset via email (SMTP, any provider) (done)
 
 ## License
 

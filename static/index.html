@@ -525,6 +525,21 @@
         <label class="f" data-en="Password">סיסמה<input id="loginPw" type="password" required autocomplete="current-password"></label>
         <div class="form-error" id="loginErr"></div>
         <button class="btn" type="submit" data-en="Log in">כניסה</button>
+        <div style="text-align:center; margin-top:10px">
+          <button type="button" onclick="authMode('forgot')" data-en="Forgot your password?"
+            style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px; text-decoration:underline">שכחת סיסמה?</button>
+        </div>
+      </form>
+      <form id="forgotForm" style="display:none" onsubmit="doForgot(event)">
+        <div class="hint" style="margin-bottom:10px" data-en="Enter your email and we'll send a link to reset your password.">הזינו את האימייל ונשלח קישור לאיפוס הסיסמה.</div>
+        <label class="f" data-en="Email">אימייל<input id="forgotEmail" type="email" required autocomplete="email"></label>
+        <div class="form-error" id="forgotErr"></div>
+        <div class="hint" id="forgotMsg" style="display:none; color:var(--good-text)"></div>
+        <button class="btn" type="submit" data-en="Send reset link">שליחת קישור איפוס</button>
+        <div style="text-align:center; margin-top:10px">
+          <button type="button" onclick="authMode('login')" data-en="Back to log in"
+            style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px; text-decoration:underline">חזרה להתחברות</button>
+        </div>
       </form>
       <form id="regForm" style="display:none" onsubmit="doRegister(event)">
         <label class="f" data-en="Name (as your roommates will see it)">שם (כמו שהשותפים יראו אותו)<input id="regName" required maxlength="40"></label>
@@ -557,6 +572,25 @@
       </form>
       <div class="hint" style="text-align:center; margin-top:18px">
         <a href="#" onclick="doLogout(event)" style="color:var(--muted)" data-en="Log out">התנתקות</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ איפוס סיסמה ============ -->
+<div class="screen" id="screen-reset">
+  <div class="center-wrap">
+    <div class="auth-card">
+      <div class="logo-dot" style="background:var(--brand); display:flex; align-items:center; justify-content:center; font-size:30px">🔑</div>
+      <h1 data-en="New password">סיסמה חדשה</h1>
+      <div class="tagline" data-en="Choose a new password for your account.">בחרו סיסמה חדשה לחשבון שלכם.</div>
+      <form id="resetForm" onsubmit="doReset(event)">
+        <label class="f" data-en="New password (at least 6 characters)">סיסמה חדשה (לפחות 6 תווים)<input id="resetPw" type="password" required minlength="6" autocomplete="new-password"></label>
+        <div class="form-error" id="resetErr"></div>
+        <button class="btn" type="submit" data-en="Update password">עדכון סיסמה</button>
+      </form>
+      <div class="hint" style="text-align:center; margin-top:18px">
+        <a href="/" style="color:var(--muted)" data-en="Back to log in">חזרה להתחברות</a>
       </div>
     </div>
   </div>
@@ -1003,7 +1037,7 @@ const GREET_EMOJI = () => { const h = new Date().getHours(); return h>=5&&h<12 ?
 /* ================= screens & boot ================= */
 function showScreen(id){
   document.getElementById("loader").style.display = "none";
-  for(const s of ["auth","setup","app"])
+  for(const s of ["auth","setup","reset","app"])
     document.getElementById("screen-"+s).classList.toggle("active", s===id);
 }
 async function boot(){
@@ -1031,6 +1065,7 @@ function authMode(mode){
   document.getElementById("authTabReg").classList.toggle("active", mode==="register");
   document.getElementById("loginForm").style.display = mode==="login" ? "" : "none";
   document.getElementById("regForm").style.display = mode==="register" ? "" : "none";
+  document.getElementById("forgotForm").style.display = mode==="forgot" ? "" : "none";
 }
 async function doLogin(ev){
   ev.preventDefault();
@@ -1085,6 +1120,29 @@ async function deleteAccount(){
     S = null;
     showScreen("auth");   // logged out after deletion
   }catch(e){ toast(e.message); }
+}
+async function doForgot(ev){
+  ev.preventDefault();
+  const errEl = document.getElementById("forgotErr"); errEl.textContent = "";
+  const msgEl = document.getElementById("forgotMsg");
+  try{
+    await api("/password/forgot","POST",{email:forgotEmail.value});
+    msgEl.textContent = t("אם קיים חשבון עם המייל הזה, נשלח אליו קישור לאיפוס (בדקו גם בספאם).",
+                          "If an account exists for that email, a reset link is on its way (check spam too).");
+    msgEl.style.display = "";
+    document.getElementById("forgotEmail").value = "";
+  }catch(e){ errEl.textContent = e.message; }
+}
+async function doReset(ev){
+  ev.preventDefault();
+  const errEl = document.getElementById("resetErr"); errEl.textContent = "";
+  try{
+    await api("/password/reset","POST",{token:RESET_TOKEN, password:resetPw.value});
+    history.replaceState(null, "", location.pathname);   // strip ?reset= from the URL
+    toast(t("הסיסמה עודכנה — אפשר להתחבר","Password updated — you can log in now"), "success");
+    authMode("login");
+    showScreen("auth");
+  }catch(e){ errEl.textContent = e.message; }
 }
 
 /* ================= tabs ================= */
@@ -1845,7 +1903,10 @@ applyLang();
 applyA11y();
 initCookieNote();
 
-boot();
+// קישור איפוס סיסמה (?reset=טוקן) → מסך איפוס; אחרת אתחול רגיל
+const RESET_TOKEN = new URLSearchParams(location.search).get("reset");
+if(RESET_TOKEN) showScreen("reset");
+else boot();
 </script>
 </body>
 </html>

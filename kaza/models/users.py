@@ -82,6 +82,11 @@ def is_referenced(user_id: int) -> bool:
     return bool(row["ref"])
 
 
+def set_password(user_id: int, pw_hash: str) -> None:
+    """Replace a user's password hash (used by the password-reset flow)."""
+    get_db().execute("UPDATE users SET pw_hash=? WHERE id=?", (pw_hash, user_id))
+
+
 def set_personal_budget(user_id: int, budget: float) -> None:
     """Set the user's private monthly budget."""
     get_db().execute("UPDATE users SET personal_budget=? WHERE id=?", (budget, user_id))

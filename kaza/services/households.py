@@ -11,6 +11,7 @@ from kaza.models import bulletin as bulletin_repo
 from kaza.models import chores as chores_repo
 from kaza.models import finance as finance_repo
 from kaza.models import households as households_repo
+from kaza.models import password_resets as resets_repo
 from kaza.models import private_expenses as private_repo
 from kaza.models import users as users_repo
 from kaza.services import finance as finance_service
@@ -136,6 +137,7 @@ def delete_account(user_id: int) -> str | None:
             households_repo.delete_cascade(household_id)
 
     private_repo.delete_all_for(user_id)
+    resets_repo.delete_for_user(user_id)
 
     if users_repo.is_referenced(user_id):
         placeholder = f"deleted-{user_id}-{secrets.token_hex(4)}@kaza.invalid"

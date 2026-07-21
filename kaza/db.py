@@ -127,6 +127,14 @@ CREATE TABLE IF NOT EXISTS bulletin_board(
   is_pinned INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS password_resets(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 """
 
 # Indexes that back the app's hottest lookups (all keyed by household/user).
@@ -142,6 +150,7 @@ INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_chores_household ON chores(household_id)",
     "CREATE INDEX IF NOT EXISTS idx_private_user_date ON private_expenses(user_id, date)",
     "CREATE INDEX IF NOT EXISTS idx_bulletin_household ON bulletin_board(household_id)",
+    "CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token_hash)",
 ]
 
 

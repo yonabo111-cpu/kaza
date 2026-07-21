@@ -9,6 +9,7 @@ from kaza.auth import end_session, hash_password, login_required, start_session,
 from kaza.models import households as households_repo
 from kaza.models import users as users_repo
 from kaza.security import client_ip, login_ip_limiter, login_limiter, register_ip_limiter
+from kaza.services import accounts as accounts_service
 from kaza.services import households as households_service
 from kaza.utils import EMAIL_RE, body, clean_text, err
 
@@ -60,6 +61,29 @@ def login():
 def logout():
     """Clear the current session."""
     end_session()
+    return jsonify(ok=True)
+
+
+@bp.post("/api/password/forgot")
+def forgot_password():
+    """Start a password reset. Always succeeds — never reveals if the email exists."""
+    if not register_ip_limiter.allow(client_ip()):
+        return err("יותר מדי בקשות — נסו שוב מאוחר יותר", 429)
+    email = (body().get("email") or "").strip().lower()
+    if EMAIL_RE.match(email):
+        accounts_service.request_password_reset(email)
+    return jsonify(ok=True)
+
+
+@bp.post("/api/password/reset")
+def reset_password():
+    """Set a new password using a valid reset token."""
+    if not login_ip_limiter.allow(client_ip()):
+        return err("יותר מדי ניסיונות — נסו שוב מאוחר יותר", 429)
+    d = body()
+    error = accounts_service.perform_password_reset(d.get("token") or "", d.get("password") or "")
+    if error:
+        return err(error)
     return jsonify(ok=True)
 
 

@@ -59,6 +59,18 @@ class BaseConfig:
 
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 
+    # Outbound email for password resets. With no SMTP host configured, mail is
+    # logged instead of sent — so the flow works in development without a
+    # provider, and any SMTP service (e.g. Gmail) enables real delivery.
+    SMTP_HOST = os.environ.get("SMTP_HOST", "")
+    SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+    SMTP_USER = os.environ.get("SMTP_USER", "")
+    SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+    SMTP_FROM = os.environ.get("SMTP_FROM", "") or os.environ.get("SMTP_USER", "")
+    SMTP_TLS = os.environ.get("SMTP_TLS", "1").lower() not in ("0", "false", "no", "")
+    # Absolute base URL used to build links inside emails (e.g. the live host).
+    APP_BASE_URL = os.environ.get("APP_BASE_URL", "").rstrip("/")
+
     @property
     def db_path(self) -> str:
         """Absolute path to the SQLite database file."""
