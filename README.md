@@ -300,6 +300,30 @@ and everyone's test data survive the update.
 > restricts — it stays silently disabled while the built-in recipe book keeps
 > working. Every other feature runs fully offline on SQLite.
 
+### Backups
+
+All data lives in one SQLite file (`data/app.db`), so keep snapshots of it.
+`backup.py` takes consistent snapshots via SQLite's online-backup API (safe even
+while the app is running) into `data/backups/`, keeping the most recent 14:
+
+```bash
+python3 backup.py            # create a snapshot (+ prune old ones)
+python3 backup.py list       # list existing snapshots
+python3 backup.py restore data/backups/app-20260721-030000-000000.db
+```
+
+A restore always safety-copies the current database first (`pre-restore-*.db`),
+so it is itself reversible. Reload the app afterwards.
+
+**Automate it on PythonAnywhere** — *Tasks* tab → add a daily scheduled task:
+
+```bash
+cd ~/kaza && python3 backup.py
+```
+
+For extra safety, download `data/backups/` off-server periodically (the *Files*
+tab), so a lost account can't take the data with it.
+
 ### Render / Railway / Fly
 
 A `Procfile` (`gunicorn wsgi:app`) and `Dockerfile` are included. On free tiers
@@ -324,6 +348,7 @@ in **[SECURITY.md](SECURITY.md)**.
 - [ ] Password reset via email, email verification
 - [ ] Downloadable monthly report
 - [x] Modular backend, security hardening, Docker, CI (done)
+- [x] Automated database snapshots + restore (`backup.py`) (done)
 
 ## License
 

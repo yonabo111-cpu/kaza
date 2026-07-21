@@ -23,6 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 BASE_PORT = int(os.environ.get("TEST_PORT", "5099"))
 
+# Suites that exercise the HTTP API — each gets its own freshly booted server.
 SUITES = [
     "api_test.py",
     "personal_test.py",
@@ -32,6 +33,11 @@ SUITES = [
     "security_test.py",
     "monthly_test.py",
     "bills_test.py",
+]
+
+# Suites that test standalone modules on their own throwaway data — no server.
+UNIT_SUITES = [
+    "backup_test.py",
 ]
 
 
@@ -83,11 +89,19 @@ def _run_suite(suite: str, port: int) -> bool:
         shutil.rmtree(data_dir, ignore_errors=True)
 
 
+def _run_unit(suite: str) -> bool:
+    """Run a server-less suite directly. Return True on success."""
+    print(f"\n=== {suite} ===", flush=True)
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    return subprocess.run([sys.executable, os.path.join(HERE, suite)], env=env).returncode == 0
+
+
 def main() -> int:
     """Run all suites; return an exit code (0 = all passed)."""
     failed = [
         suite for index, suite in enumerate(SUITES) if not _run_suite(suite, BASE_PORT + index)
     ]
+    failed += [suite for suite in UNIT_SUITES if not _run_unit(suite)]
     if failed:
         print(f"\nFAILED SUITES: {', '.join(failed)}")
         return 1
