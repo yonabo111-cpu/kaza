@@ -353,6 +353,7 @@ in **[SECURITY.md](SECURITY.md)**.
 - [x] Automated database snapshots + restore (`backup.py`) (done)
 - [x] Self-service leave-household & account deletion (done)
 - [x] Password reset via email (SMTP, any provider) (done)
+- [x] Installable PWA — service worker, offline shell, home-screen icons (done)
 
 ## License
 
