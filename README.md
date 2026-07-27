@@ -283,7 +283,8 @@ deployment set `KAZA_ENV=production` (behind HTTPS) and a `SECRET_KEY`.
 
    ```python
    import os, sys
-   os.environ["KAZA_ENV"] = "production"        # secure cookies + HSTS
+
+   os.environ["KAZA_ENV"] = "production"  # secure cookies + HSTS
    path = "/home/<you>/kaza"
    if path not in sys.path:
        sys.path.insert(0, path)
