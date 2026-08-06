@@ -449,6 +449,15 @@
     transition-duration:.001ms !important; scroll-behavior:auto !important;
   }
 
+  /* ============ offline banner ============ */
+  .offline-bar{
+    position:fixed; inset-inline:0; top:0; z-index:95;
+    background:#8a5a12; color:#fff; text-align:center;
+    font-size:13px; font-weight:500; padding:7px 12px;
+    transform:translateY(-100%); transition:transform .2s ease;
+  }
+  .offline-bar.show{ transform:none; }
+
   /* ============ cookie notice ============ */
   .cookie-note{
     position:fixed; left:12px; right:12px; bottom:12px; z-index:55; margin:0 auto; max-width:560px;
@@ -515,6 +524,7 @@
     </div>
   </div>
 </div>
+<div class="offline-bar" id="offlineBar" role="status" aria-live="polite" data-en="📡 You're offline — changes won't save until the connection is back">📡 אין חיבור — שינויים לא יישמרו עד שהחיבור יחזור</div>
 <div class="loader" id="loader" role="status" aria-live="polite"><div class="spinner"></div><span class="sr-only">טוען…</span></div>
 
 <!-- ============ מסך כניסה ============ -->
@@ -916,12 +926,19 @@ const localToday = () => new Date().toLocaleDateString("en-CA");   // YYYY-MM-DD
 let viewMonth = localToday().slice(0, 7);
 
 async function api(path, method = "GET", data = null){
-  const res = await fetch("/api" + path, {
-    method,
-    credentials: "same-origin",
-    headers: data ? {"Content-Type": "application/json"} : {},
-    body: data ? JSON.stringify(data) : undefined,
-  });
+  let res;
+  try{
+    res = await fetch("/api" + path, {
+      method,
+      credentials: "same-origin",
+      headers: data ? {"Content-Type": "application/json"} : {},
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }catch(err){
+    // הרשת נכשלה (אין אינטרנט / השרת לא נגיש) — הודעה ברורה במקום "Failed to fetch"
+    throw new Error(t("אין חיבור לאינטרנט — בדקו את החיבור ונסו שוב",
+                      "You're offline — check your connection and try again"));
+  }
   let payload = {};
   try{ payload = await res.json(); }catch(e){}
   if(res.status === 401 && path !== "/login"){ showScreen("auth"); throw new Error("auth"); }
@@ -1967,6 +1984,12 @@ document.querySelectorAll("nav.tabs .ico, .sheet .ico").forEach(el=>el.setAttrib
 applyLang();
 applyA11y();
 initCookieNote();
+
+// אינדיקטור "לא מקוון" — מופיע כשהמכשיר יורד מהרשת ונעלם כשהחיבור חוזר
+function updateOnline(){ document.getElementById("offlineBar").classList.toggle("show", !navigator.onLine); }
+window.addEventListener("online", updateOnline);
+window.addEventListener("offline", updateOnline);
+updateOnline();
 
 // פרמטרים בקישור: ?reset=טוקן → מסך איפוס; ?join=קוד → מילוי-מראש של קוד ההצטרפות
 const PARAMS = new URLSearchParams(location.search);
