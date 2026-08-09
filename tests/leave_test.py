@@ -29,7 +29,10 @@ def check(name, cond, extra=""):
 
 
 def register(session, name, email):
-    r = session.post(f"{BASE}/register", json={"name": name, "email": email, "password": "secret1"})
+    r = session.post(
+        f"{BASE}/register",
+        json={"name": name, "email": email, "password": "secret1", "accept": True},
+    )
     r.raise_for_status()
 
 

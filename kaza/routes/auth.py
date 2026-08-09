@@ -31,6 +31,9 @@ def register():
         return err("כתובת אימייל לא תקינה")
     if len(password) < 6:
         return err("סיסמה קצרה מדי — לפחות 6 תווים")
+    # Consent to the privacy policy is required, and recorded with the account.
+    if d.get("accept") is not True:
+        return err("יש לאשר את מדיניות הפרטיות כדי להירשם")
     if users_repo.email_exists(email):
         return err("האימייל הזה כבר רשום — נסו להתחבר")
     user_id = users_repo.create(name, email, hash_password(password))

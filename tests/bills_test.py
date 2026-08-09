@@ -35,11 +35,11 @@ def state(session):
 a, b = requests.Session(), requests.Session()
 a.post(
     f"{BASE}/register",
-    json={"name": "בדיקה-א", "email": "billsa@example.com", "password": "secret1"},
+    json={"name": "בדיקה-א", "email": "billsa@example.com", "password": "secret1", "accept": True},
 ).raise_for_status()
 b.post(
     f"{BASE}/register",
-    json={"name": "בדיקה-ב", "email": "billsb@example.com", "password": "secret2"},
+    json={"name": "בדיקה-ב", "email": "billsb@example.com", "password": "secret2", "accept": True},
 ).raise_for_status()
 a.post(f"{BASE}/household", json={"name": "דירת חשבונות"}).raise_for_status()
 code = a.get(f"{BASE}/me").json()["household"]["invite_code"]

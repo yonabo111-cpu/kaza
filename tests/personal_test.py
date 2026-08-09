@@ -32,11 +32,11 @@ def check(name, cond, extra=""):
 a, b = requests.Session(), requests.Session()
 a.post(
     f"{BASE}/register",
-    json={"name": "בדיקה-א", "email": "testa@example.com", "password": "secret1"},
+    json={"name": "בדיקה-א", "email": "testa@example.com", "password": "secret1", "accept": True},
 ).raise_for_status()
 b.post(
     f"{BASE}/register",
-    json={"name": "בדיקה-ב", "email": "testb@example.com", "password": "secret2"},
+    json={"name": "בדיקה-ב", "email": "testb@example.com", "password": "secret2", "accept": True},
 ).raise_for_status()
 a.post(f"{BASE}/household", json={"name": "דירת בדיקות"}).raise_for_status()
 code = a.get(f"{BASE}/me").json()["household"]["invite_code"]

@@ -355,6 +355,7 @@ in **[SECURITY.md](SECURITY.md)**.
 - [x] Self-service leave-household & account deletion (done)
 - [x] Password reset via email (SMTP, any provider) (done)
 - [x] Installable PWA — service worker, offline shell, home-screen icons (done)
+- [x] Privacy policy, accessibility statement, and recorded signup consent (done)
 
 ## License
 

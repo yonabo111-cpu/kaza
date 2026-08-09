@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS users(
   pw_hash TEXT NOT NULL,
   household_id INTEGER REFERENCES households(id),
   joined_at TEXT,
+  terms_accepted_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS categories(
@@ -203,6 +204,9 @@ def _run_migrations(conn: sqlite3.Connection) -> None:
     user_cols = [row[1] for row in conn.execute("PRAGMA table_info(users)")]
     if "personal_budget" not in user_cols:
         conn.execute("ALTER TABLE users ADD COLUMN personal_budget REAL NOT NULL DEFAULT 0")
+    # Record of consent to the privacy policy, captured at registration.
+    if "terms_accepted_at" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN terms_accepted_at TEXT")
 
     # Bill types: 'equal' (one payer, split between all), 'individual' (each
     # member pays their own), 'private' (visible to its owner only).

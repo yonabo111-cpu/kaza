@@ -30,7 +30,7 @@ def check(name, cond, extra=""):
 a = requests.Session()
 a.post(
     f"{BASE}/register",
-    json={"name": "בדיקה-א", "email": "testa@example.com", "password": "secret1"},
+    json={"name": "בדיקה-א", "email": "testa@example.com", "password": "secret1", "accept": True},
 ).raise_for_status()
 a.post(f"{BASE}/household", json={"name": "דירת בדיקות"}).raise_for_status()
 

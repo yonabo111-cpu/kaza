@@ -37,27 +37,51 @@ b = requests.Session()
 # --- הרשמה ואימות ---
 r = a.post(
     f"{BASE}/register",
-    json={"name": "בדיקה-א", "email": "testa@example.com", "password": "secret1"},
+    json={"name": "בדיקה-א", "email": "testa@example.com", "password": "secret1", "accept": True},
 )
 check("register A", r.ok, r.text)
 r = requests.post(
-    f"{BASE}/register", json={"name": "כפול", "email": "testa@example.com", "password": "secret1"}
+    f"{BASE}/register",
+    json={"name": "כפול", "email": "testa@example.com", "password": "secret1", "accept": True},
 )
 check("duplicate email rejected", r.status_code == 400)
 r = requests.post(f"{BASE}/login", json={"email": "testa@example.com", "password": "wrong!"})
 check("wrong password 401", r.status_code == 401)
 r = b.post(
     f"{BASE}/register",
-    json={"name": "בדיקה-ב", "email": "testb@example.com", "password": "secret2"},
+    json={"name": "בדיקה-ב", "email": "testb@example.com", "password": "secret2", "accept": True},
 )
 check("register B", r.ok, r.text)
 check(
     "register weak password rejected",
     requests.post(
-        f"{BASE}/register", json={"name": "x", "email": "t@t.co", "password": "123"}
+        f"{BASE}/register", json={"name": "x", "email": "t@t.co", "password": "123", "accept": True}
     ).status_code
     == 400,
 )
+# Consent to the privacy policy is mandatory and recorded.
+check(
+    "register without consent rejected",
+    requests.post(
+        f"{BASE}/register",
+        json={"name": "ללא הסכמה", "email": "noconsent@example.com", "password": "secret1"},
+    ).status_code
+    == 400,
+)
+check(
+    "unconsented account was not created",
+    requests.post(
+        f"{BASE}/login", json={"email": "noconsent@example.com", "password": "secret1"}
+    ).status_code
+    == 401,
+)
+
+# --- דפי מדיניות: חייבים להיות נגישים לכל אחד, גם בלי התחברות ---
+ROOT = BASE.rsplit("/api", 1)[0]
+for page, needle in [("/privacy", "פרטיות"), ("/accessibility", "נגישות")]:
+    resp = requests.get(f"{ROOT}{page}")
+    check(f"{page} is publicly reachable", resp.status_code == 200, str(resp.status_code))
+    check(f"{page} has its content", needle in resp.text)
 
 # --- דירה ---
 check("state without household 409", a.get(f"{BASE}/state?month={MONTH}").status_code == 409)
@@ -228,7 +252,10 @@ check("delete used category rejected", r.status_code == 400)
 
 # --- בידוד בין דירות ---
 c = requests.Session()
-c.post(f"{BASE}/register", json={"name": "זר", "email": "testc@example.com", "password": "secret3"})
+c.post(
+    f"{BASE}/register",
+    json={"name": "זר", "email": "testc@example.com", "password": "secret3", "accept": True},
+)
 c.post(f"{BASE}/household", json={"name": "דירה זרה"})
 some_expense = st["expenses"][0]["id"]
 r = c.delete(f"{BASE}/expenses/{some_expense}")

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הצהרת נגישות · קאזה</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#fff; --ink:#1c1e21; --muted:#6b6e76;
+    --border:#e3e5e9; --accent:#2570cf; --brand:linear-gradient(135deg,#2a78d6,#4a3aa7);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0e0f11; --surface:#17191c; --ink:#e9eaec; --muted:#a0a4ad; --border:#2a2d32; --accent:#5b9bec; }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:Rubik,system-ui,sans-serif; line-height:1.75; font-size:15.5px;}
+  .hero{background:var(--brand); color:#fff; padding:34px 20px;}
+  .hero-in{max-width:760px; margin:0 auto;}
+  .hero h1{margin:0 0 6px; font-size:26px;}
+  .hero p{margin:0; opacity:.9; font-size:14.5px;}
+  main{max-width:760px; margin:24px auto 60px; padding:0 20px;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 26px; margin-bottom:18px;}
+  h2{font-size:19px; margin:26px 0 10px;}
+  h2:first-child{margin-top:0;}
+  ul{padding-inline-start:22px; margin:10px 0;}
+  li{margin-bottom:7px;}
+  a{color:var(--accent);}
+  .meta{color:var(--muted); font-size:13.5px;}
+  .back{display:inline-block; margin-top:8px; color:#fff; text-decoration:none; font-size:14px; opacity:.95;}
+  .contact{background:color-mix(in srgb, var(--accent) 8%, transparent); border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-top:10px;}
+  .en{direction:ltr; text-align:left;}
+  hr{border:none; border-top:1px solid var(--border); margin:30px 0;}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <h1>הצהרת נגישות</h1>
+    <p>קאזה — ניהול בית משותף לשותפים לדירה</p>
+    <a class="back" href="/">← חזרה לאפליקציה</a>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <p class="meta">עודכן לאחרונה: 9 באוגוסט 2026</p>
+
+    <h2>המחויבות שלנו</h2>
+    <p>
+      אנו רואים בנגישות ערך מרכזי, ופועלים כדי שכל אדם — לרבות אנשים עם מוגבלות —
+      יוכל להשתמש בקאזה בעצמאות, בכבוד ובנוחות. השקענו מאמץ ניכר כדי להנגיש את
+      השירות בהתאם לתקן הישראלי <b>ת"י 5568</b>, המבוסס על הנחיות
+      <b>WCAG 2.0 ברמה AA</b>, ובהתאם לתקנות שוויון זכויות לאנשים עם מוגבלות
+      (התאמות נגישות לשירות), התשע"ג-2013.
+    </p>
+
+    <h2>מה הונגש באתר</h2>
+    <ul>
+      <li><b>תפריט נגישות</b> — לחצן ייעודי בפינת המסך המאפשר הגדלת טקסט, מצב ניגודיות גבוהה, ועצירת אנימציות.</li>
+      <li><b>ניווט מלא במקלדת</b> — כל הפעולות ניתנות לביצוע ללא עכבר, עם סימון מיקוד ברור וקישור "דילוג לתוכן".</li>
+      <li><b>תמיכה בקוראי מסך</b> — מבנה סמנטי, אזורי ניווט (landmarks), תוויות ARIA לכל הכפתורים, ואזורי עדכון חי להודעות.</li>
+      <li><b>ניגודיות צבעים</b> — יחס ניגודיות של 4.5:1 לפחות בטקסט, במצב בהיר ובמצב כהה.</li>
+      <li><b>הפחתת תנועה</b> — כיבוד העדפת המערכת <span dir="ltr">prefers-reduced-motion</span>.</li>
+      <li><b>התאמה למובייל</b> — תצוגה רספונסיבית, אזורי מגע נוחים, ותמיכה בהגדלת תצוגה.</li>
+      <li><b>שפה וכיווניות</b> — ממשק מלא בעברית (RTL) ובאנגלית (LTR), עם סימון שפה תקין.</li>
+    </ul>
+
+    <h2>מגבלות ידועות</h2>
+    <p>
+      למרות מאמצינו, ייתכן שיימצאו חלקים שטרם הונגשו במלואם. אנו ממשיכים לשפר את
+      הנגישות באופן שוטף. אם נתקלתם בקושי — נשמח מאוד לשמוע, ונפעל לתקן בהקדם.
+    </p>
+
+    <h2>פנייה בנושא נגישות</h2>
+    <p>
+      נתקלתם בבעיית נגישות, או שיש לכם הצעה לשיפור? זו הדרך ליצור קשר עם רכז
+      הנגישות שלנו:
+    </p>
+    <div class="contact">
+      <p style="margin:0">
+        <b>רכז הנגישות:</b> יונה בורנשטיין<br>
+        <b>דוא"ל:</b> <a href="mailto:yonabo111@gmail.com">yonabo111@gmail.com</a><br>
+        <span class="meta">נשתדל להשיב לכל פנייה בתוך זמן סביר.</span>
+      </p>
+    </div>
+
+    <h2>פרטי ההצהרה</h2>
+    <ul>
+      <li><b>השירות:</b> קאזה — אפליקציית ווב לניהול בית משותף.</li>
+      <li><b>רמת הנגישות:</b> ת"י 5568 / WCAG 2.0 ברמה AA.</li>
+      <li><b>שיטת הבדיקה:</b> בדיקה פנימית — בחינה ידנית של ניווט מקלדת, מבנה סמנטי, וניגודיות צבעים.</li>
+      <li><b>תאריך עדכון ההצהרה:</b> 9 באוגוסט 2026.</li>
+    </ul>
+  </div>
+
+  <hr>
+
+  <div class="card en" lang="en">
+    <h2>Accessibility Statement (English)</h2>
+    <p class="meta">Last updated: 9 August 2026</p>
+    <p>
+      We are committed to making Kaza usable by everyone, including people with
+      disabilities. The service aims to conform to Israeli Standard <b>IS 5568</b>, based on
+      <b>WCAG 2.0 Level AA</b>.
+    </p>
+    <p>
+      <b>What we've done:</b> a built-in accessibility menu (text resizing, high contrast,
+      stop animations); full keyboard navigation with a visible focus indicator and a skip
+      link; screen-reader support via semantic structure, landmarks, ARIA labels and live
+      regions; a minimum 4.5:1 text contrast ratio in both light and dark themes; respect for
+      <span dir="ltr">prefers-reduced-motion</span>; responsive mobile layout; and a fully
+      bilingual Hebrew (RTL) / English (LTR) interface.
+    </p>
+    <p>
+      <b>Known limitations:</b> despite our efforts, some parts may not yet be fully
+      accessible. We continue to improve, and we'd genuinely like to hear about any problem
+      you hit.
+    </p>
+    <p>
+      <b>Accessibility coordinator:</b> Yona Bornstein —
+      <a href="mailto:yonabo111@gmail.com">yonabo111@gmail.com</a>.
+      We aim to respond to every request within a reasonable time.
+    </p>
+  </div>
+
+  <p class="meta" style="text-align:center">
+    <a href="/">חזרה לאפליקציה</a> · <a href="/privacy">מדיניות פרטיות</a>
+  </p>
+</main>
+</body>
+</html>

@@ -46,7 +46,8 @@ app = create_app()
 client = app.test_client()
 
 client.post(
-    "/api/register", json={"name": "מאיה", "email": "reset@example.com", "password": "oldpass1"}
+    "/api/register",
+    json={"name": "מאיה", "email": "reset@example.com", "password": "oldpass1", "accept": True},
 )
 client.post("/api/logout")
 

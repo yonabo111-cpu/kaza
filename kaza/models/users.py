@@ -22,9 +22,9 @@ def email_exists(email: str) -> bool:
 
 
 def create(name: str, email: str, pw_hash: str) -> int:
-    """Insert a new user and return its id."""
+    """Insert a new user (stamping their privacy-policy consent) and return its id."""
     cur = get_db().execute(
-        "INSERT INTO users(name,email,pw_hash) VALUES (?,?,?)",
+        "INSERT INTO users(name,email,pw_hash,terms_accepted_at) VALUES (?,?,?,datetime('now'))",
         (name, email, pw_hash),
     )
     return cur.lastrowid

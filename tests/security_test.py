@@ -32,7 +32,7 @@ def check(name, cond, extra=""):
 a = requests.Session()
 reg = a.post(
     f"{BASE}/register",
-    json={"name": "בדיקה-א", "email": "testa@example.com", "password": "secret1"},
+    json={"name": "בדיקה-א", "email": "testa@example.com", "password": "secret1", "accept": True},
 )
 reg.raise_for_status()
 a.post(f"{BASE}/household", json={"name": "דירת בדיקות"}).raise_for_status()
@@ -58,7 +58,7 @@ check(
 fresh = requests.Session()
 r = fresh.post(
     f"{BASE}/register",
-    json={"name": "בדיקה-ב", "email": "testb@example.com", "password": "secret2"},
+    json={"name": "בדיקה-ב", "email": "testb@example.com", "password": "secret2", "accept": True},
 )
 set_cookie = r.headers.get("Set-Cookie", "")
 check("cookie HttpOnly", "HttpOnly" in set_cookie)
@@ -155,7 +155,8 @@ check("sqli stored verbatim", any(e["descr"] == sqli for e in st2["expenses"]))
 check(
     "users table intact after sqli",
     requests.post(
-        f"{BASE}/register", json={"name": "ג", "email": "testc@example.com", "password": "secret3"}
+        f"{BASE}/register",
+        json={"name": "ג", "email": "testc@example.com", "password": "secret3", "accept": True},
     ).ok,
 )
 

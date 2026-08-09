@@ -28,6 +28,18 @@ def index():
     return current_app.send_static_file("index.html")
 
 
+@bp.get("/privacy")
+def privacy():
+    """Serve the privacy policy (public — must be readable without an account)."""
+    return current_app.send_static_file("privacy.html")
+
+
+@bp.get("/accessibility")
+def accessibility():
+    """Serve the accessibility statement (public)."""
+    return current_app.send_static_file("accessibility.html")
+
+
 @bp.get("/healthz")
 def health_check():
     """Liveness/readiness probe: verifies the database is reachable."""

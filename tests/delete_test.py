@@ -30,7 +30,7 @@ def check(name, cond, extra=""):
 
 def register(session, name, email, pw="secret1"):
     session.post(
-        f"{BASE}/register", json={"name": name, "email": email, "password": pw}
+        f"{BASE}/register", json={"name": name, "email": email, "password": pw, "accept": True}
     ).raise_for_status()
 
 
@@ -81,7 +81,8 @@ tmp = requests.Session()
 check(
     "freed email can be reused",
     tmp.post(
-        f"{BASE}/register", json={"name": "חדש", "email": "delb@example.com", "password": "secret1"}
+        f"{BASE}/register",
+        json={"name": "חדש", "email": "delb@example.com", "password": "secret1", "accept": True},
     ).status_code
     == 200,
 )
@@ -102,7 +103,8 @@ check(
     "solo user's email is freed",
     requests.Session()
     .post(
-        f"{BASE}/register", json={"name": "שוב", "email": "delc@example.com", "password": "secret1"}
+        f"{BASE}/register",
+        json={"name": "שוב", "email": "delc@example.com", "password": "secret1", "accept": True},
     )
     .status_code
     == 200,
