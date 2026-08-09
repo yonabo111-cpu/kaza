@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 venv/
 .env
+
+# טיוטות שיווק מקומיות (לא לגרסה הפומבית)
+linkedin-post.md
