@@ -184,7 +184,11 @@ check("settled: balances zero", bal(st, A) == 0 and bal(st, B) == 0, str(st["bal
 check("settled: no transfers", len(st["transfers"]) == 0)
 
 # --- חשבונות קבועים ---
+# חשבונות נזרעים כתבנית ללא סכום — קודם ממלאים, ואז אפשר לשלם.
 elec = [x for x in st["bills"] if x["name"] == "חשמל"][0]
+check("seeded bills start with no amount", elec["amount"] == 0, str(elec))
+r = b.patch(f"{BASE}/bills/{elec['id']}", json={"amount": 300})
+check("set the bill amount", r.ok, r.text)
 r = b.post(f"{BASE}/bills/{elec['id']}/pay", json={"month": MONTH, "payer_id": B})
 check("pay bill", r.ok, r.text)
 st = a.get(f"{BASE}/state?month={MONTH}").json()

@@ -33,13 +33,15 @@ _SEED_CATEGORIES = [
     ("בילויים", 0),
     ("אחר", 0),
 ]
+# Seeded as a checklist to fill in: amount 0 means "not set yet", so a brand-new
+# household is never told it is late on a bill it never entered.
 _SEED_BILLS = [
-    ("שכר דירה", 4500, 1),
-    ("ארנונה", 380, 15),
-    ("חשמל", 300, 10),
-    ("מים", 120, 10),
-    ("אינטרנט", 100, 5),
-    ("ועד בית", 150, 1),
+    ("שכר דירה", 0, 1),
+    ("ארנונה", 0, 15),
+    ("חשמל", 0, 10),
+    ("מים", 0, 10),
+    ("אינטרנט", 0, 5),
+    ("ועד בית", 0, 1),
 ]
 _SEED_CHORES = [
     ("שטיפת רצפה", "שבועי"),

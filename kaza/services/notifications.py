@@ -56,6 +56,9 @@ def _bill_notifications(
     """
     payments = finance_repo.payments_for_month(household_id, month)
     for bill in finance_repo.bills_for(household_id, user_id):
+        # A bill with no amount yet is a placeholder to fill in, not a debt.
+        if bill["amount"] <= 0:
+            continue
         payers = {p["payer_id"] for p in payments.get(bill["id"], [])}
         if bill["bill_type"] == "equal":
             if payers:

@@ -89,7 +89,23 @@ a.post(
 ).raise_for_status()
 na = notifs(a)
 check("bill due-today is warn", has(na, "bill-due-", "warn"), str([n["id"] for n in na]))
-if TODAY.day > 1:  # שכר הדירה המובנה (יום 1) טרם שולם → באיחור
+
+# חשבון שנזרע ללא סכום הוא תבנית למילוי — אסור שיתריע שהוא באיחור
+check(
+    "seeded amount-less bills raise no alerts",
+    not any(
+        n["id"].startswith(("bill-late-", "bill-due-")) and "בדיקה" not in n["text"] for n in na
+    ),
+    str([n["text"] for n in na]),
+)
+
+# חשבון עם סכום שיום החיוב שלו כבר עבר → קריטי
+if TODAY.day > 1:
+    a.post(
+        f"{BASE}/bills",
+        json={"name": "חשבון באיחור", "amount": 200, "due_day": 1, "category_id": cats[0]["id"]},
+    ).raise_for_status()
+    na = notifs(a)
     check("overdue bill is critical", has(na, "bill-late-", "critical"))
 
 # --- חוב: ב' חייב אחרי ההוצאה השווה — רק ב' רואה ---
