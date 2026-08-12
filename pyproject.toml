@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "Kaza — a household-management web app for roommates (expenses, budgets, shopping, bills, chores)."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = { text = "Proprietary — All rights reserved" }
 dependencies = [
     "flask>=3.0",
     "waitress>=3.0",

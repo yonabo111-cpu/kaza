@@ -5,16 +5,19 @@
 # Kaza · קאזה
 
 **Like _casa_, but with roommates.**
-A full-stack household-management web app: shared expenses with automatic
-settle-up, budgets, a smart shopping list, recurring bills, chore rotation, a
-bulletin board, in-app notifications — and a private ledger only you can see.
+A household-management web app: shared expenses with automatic settle-up, a
+smart shopping list, recurring bills, chore rotation, a bulletin board, in-app
+notifications — and a private ledger only you can see.
 
 [![CI](https://github.com/yonabo111-cpu/kaza/actions/workflows/ci.yml/badge.svg)](https://github.com/yonabo111-cpu/kaza/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![Flask](https://img.shields.io/badge/framework-Flask-black)
-![Tests](https://img.shields.io/badge/tests-158%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-284%20passing-brightgreen)
 ![Lint](https://img.shields.io/badge/lint-ruff-orange)
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-proprietary-lightgrey)
+
+**Private repository · proprietary software.**
+Internal documentation for building, running, and operating Kaza.
 
 </div>
 
@@ -46,14 +49,15 @@ Kaza is built for people who share an apartment and want the money and chores to
 truth: who paid for what, how it splits, who owes whom, what needs buying, and
 whose turn it is to take out the trash.
 
-It is a genuinely full-stack project: a modular **Flask** backend (application
-factory, layered `routes → services → models → db`), a dependency-light
-single-file frontend, real authentication and multi-tenant isolation, a security
-model documented and tested end-to-end, Docker, and CI. The UI is **Hebrew
-(RTL)**, mobile-first, with dark mode.
+Under the hood: a modular **Flask** backend (application factory, layered
+`routes → services → models → db`), a dependency-light single-file frontend,
+real authentication and multi-tenant isolation, a security model documented and
+tested end-to-end, Docker, and CI. The UI is bilingual **Hebrew (RTL)** and
+English, mobile-first, with dark mode, and installs as a PWA.
 
-> **Status:** functional and self-hostable today. Actively being polished toward
-> a public release — see the [roadmap](#roadmap).
+> **Status:** live in production at
+> <https://yonabornstein.pythonanywhere.com> and open to real users.
+> See the [roadmap](#roadmap) for what's next.
 
 ## Screenshots
 
@@ -226,11 +230,12 @@ All configuration is via environment variables — copy
 
 ## Testing
 
-158 checks across 6 suites in [`tests/`](tests) drive the app end-to-end — two
-simulated roommates through every flow: registration, invite codes, all split
-types, balances and settle-up, bills, shopping, chores, cross-household
-isolation, the privacy guarantees of the private ledger, recipe resolution,
-bulletin-board permissions, notification derivation, and a dedicated **security
+284 checks across 15 suites in [`tests/`](tests) drive the app end-to-end —
+simulated roommates through every flow: registration and consent, invite codes,
+all split types, balances and settle-up, couple mode, bills, shopping, chores,
+cross-household isolation, the privacy guarantees of the private ledger, recipe
+resolution, bulletin-board permissions, notification derivation, leaving a
+household, account deletion, password reset, backups, and a dedicated **security
 suite** (headers, every CSRF layer, auth walls, lockout, SQLi/XSS handling).
 
 ```bash
@@ -359,4 +364,8 @@ in **[SECURITY.md](SECURITY.md)**.
 
 ## License
 
-[MIT](LICENSE) © Yona
+**Proprietary — all rights reserved.** © 2026 Yona Bornstein.
+
+This repository is private and its source code is confidential. It is not open
+source: no permission is granted to use, copy, modify, or distribute it without
+written consent. See [LICENSE](LICENSE).

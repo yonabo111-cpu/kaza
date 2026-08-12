@@ -1,8 +1,8 @@
 # Security Model
 
-Kaza is a small self-hosted app that holds real household data (expenses,
-balances, private ledgers), so it applies defense-in-depth appropriate to its
-size. This document describes the layers, in request order.
+Kaza holds real household data (expenses, balances, private ledgers), so it
+applies defense-in-depth appropriate to its size. This document describes the
+layers, in request order.
 
 ## Transport & headers
 
