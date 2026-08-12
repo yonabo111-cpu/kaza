@@ -449,6 +449,22 @@
     transition-duration:.001ms !important; scroll-behavior:auto !important;
   }
 
+  /* ============ household kind picker (roommates / couple) ============ */
+  .kind-picker{display:flex; gap:8px; margin-bottom:12px;}
+  .kind-opt{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:12px 8px; border-radius:13px; border:1.5px solid var(--border);
+    background:var(--surface); color:var(--ink); cursor:pointer;
+    font-size:13.5px; font-weight:600; font-family:inherit; text-align:center;
+    transition:border-color .15s, background .15s;
+  }
+  .kind-opt .ic{font-size:20px;}
+  .kind-opt .sub{font-size:11.5px; font-weight:400; color:var(--muted); line-height:1.35;}
+  .kind-opt.active{
+    border-color:var(--accent);
+    background:color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+
   /* ============ landing pitch (first thing a new visitor sees) ============ */
   .pitch{
     margin:16px 0 4px; padding:14px 16px; border-radius:14px;
@@ -641,6 +657,19 @@
       <div class="tagline" id="setupHello"></div>
       <form onsubmit="createHousehold(event)">
         <label class="f" data-en="Start a new home — what's it called?">פותחים דירה חדשה — איך קוראים לה?<input id="hhName" placeholder='למשל: "רוטשילד 12"' data-en-placeholder='e.g. "12 Rothschild"' maxlength="60"></label>
+        <div class="f" style="margin-bottom:2px" data-en="Who lives there?">מי גר שם?</div>
+        <div class="kind-picker">
+          <button type="button" class="kind-opt active" id="kindRoommates" onclick="pickKind('roommates')">
+            <span class="ic" aria-hidden="true">🏠</span>
+            <span data-en="Roommates">שותפים</span>
+            <span class="sub" data-en="split costs, settle up">מתחלקים ומתחשבנים</span>
+          </button>
+          <button type="button" class="kind-opt" id="kindCouple" onclick="pickKind('couple')">
+            <span class="ic" aria-hidden="true">💑</span>
+            <span data-en="A couple">זוג</span>
+            <span class="sub" data-en="shared budget, no settling up">תקציב משותף, בלי התחשבנות</span>
+          </button>
+        </div>
         <div class="form-error" id="hhErr"></div>
         <button class="btn" type="submit" data-en="Create home 🎉">יצירת דירה 🎉</button>
       </form>
@@ -780,7 +809,7 @@
       <div class="inline-panel" id="customShares" style="display:none"></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="settleCard">
       <h2><span data-en="🤝 Settle up">🤝 התחשבנות</span> <span class="note" data-en="balance through the shown month · unsettled debt rolls forward">מאזן עד סוף החודש המוצג · חוב שלא נסגר מתגלגל קדימה</span></h2>
       <div id="balancesBox"></div>
       <div id="transfersBox"></div>
@@ -942,6 +971,20 @@
         <button class="btn ghost" onclick="copyInvite()" data-en="📋 Copy code">📋 העתקת הקוד</button>
       </div>
       <div class="hint" data-en="Send a roommate the link — they sign up and they're in, no code to type. The invite link and code both work.">שלחו לשותף/ה את הקישור — נרשמים ונכנסים, בלי להקליד קוד. הקישור והקוד עובדים שניהם.</div>
+      <div class="f" style="margin:16px 0 2px" data-en="Home type">סוג הבית</div>
+      <div class="kind-picker">
+        <button type="button" class="kind-opt" id="setKindRoommates" onclick="setHouseKind('roommates')">
+          <span class="ic" aria-hidden="true">🏠</span>
+          <span data-en="Roommates">שותפים</span>
+          <span class="sub" data-en="split costs, settle up">מתחלקים ומתחשבנים</span>
+        </button>
+        <button type="button" class="kind-opt" id="setKindCouple" onclick="setHouseKind('couple')">
+          <span class="ic" aria-hidden="true">💑</span>
+          <span data-en="A couple">זוג</span>
+          <span class="sub" data-en="shared budget, no settling up">תקציב משותף, בלי התחשבנות</span>
+        </button>
+      </div>
+      <div class="hint" data-en="Couple mode hides the who-owes-whom view. Nothing is deleted — switch back any time.">מצב ״זוג״ מסתיר את מסך ההתחשבנות. שום דבר לא נמחק — אפשר לחזור בכל רגע.</div>
       <div class="row-actions" style="margin-top:14px">
         <button class="btn danger" onclick="leaveHousehold()" data-en="🚪 Leave home">🚪 עזיבת דירה</button>
       </div>
@@ -1192,11 +1235,17 @@ async function doLogout(ev){
   S = null;
   showScreen("auth");
 }
+let newHouseKind = "roommates";
+function pickKind(kind){
+  newHouseKind = kind;
+  document.getElementById("kindRoommates").classList.toggle("active", kind==="roommates");
+  document.getElementById("kindCouple").classList.toggle("active", kind==="couple");
+}
 async function createHousehold(ev){
   ev.preventDefault();
   const errEl = document.getElementById("hhErr"); errEl.textContent = "";
   try{
-    await api("/household","POST",{name:hhName.value});
+    await api("/household","POST",{name:hhName.value, kind:newHouseKind});
     await boot();
     if(!localStorage.getItem("kaza-welcomed")) showWelcome();
   }
@@ -1798,11 +1847,28 @@ function renderDash(){
       ? `<div class="delta up-bad">${t(`▲ ${pct}%+ מהחודש הקודם`, `▲ ${pct}% up from last month`)}</div>`
       : `<div class="delta down-good">${t(`▼ ${pct}%- מהחודש הקודם`, `▼ ${pct}% down from last month`)}</div>`;
   }
-  const mine = S.balances.find(b=>b.id===S.user.id)?.balance || 0;
-  let balHTML;
-  if(Math.abs(mine)<0.01) balHTML = `<div class="value" style="color:var(--good-text)">${t("מאוזן ✓", "Settled ✓")}</div><div class="delta">${t("אין חובות פתוחים מולך", "No open debts involving you")}</div>`;
-  else if(mine>0) balHTML = `<div class="value amount-pos">${fmt(mine)}</div><div class="delta">${t("מגיע לך מהשותפים 💰", "The roommates owe you 💰")}</div>`;
-  else balHTML = `<div class="value amount-neg">${fmt(-mine)}</div><div class="delta">${t("עליך להחזיר — פרטים בהוצאות", "You owe — details in Expenses")}</div>`;
+  // זוג מנהל תקציב משותף — במקום "מי חייב למי" מציגים את סך הוצאות הבית.
+  const couple = S.household.kind === "couple";
+  let balLabel, balHTML;
+  if(couple){
+    balLabel = t("🏠 סך הוצאות הבית", "🏠 Household total");
+    let houseDelta = `<div class="delta">${t("סך ההוצאות המשותפות", "total shared spending")}</div>`;
+    if(S.prev_total>0){
+      const d = S.total-S.prev_total, pct = Math.round(Math.abs(d)/S.prev_total*100);
+      houseDelta = d>=0
+        ? `<div class="delta up-bad">${t(`▲ ${pct}%+ מהחודש הקודם`, `▲ ${pct}% up from last month`)}</div>`
+        : `<div class="delta down-good">${t(`▼ ${pct}%- מהחודש הקודם`, `▼ ${pct}% down from last month`)}</div>`;
+    }
+    balHTML = `<div class="value">${fmt(S.total)}</div>${houseDelta}`;
+  } else {
+    balLabel = t("🤝 המאזן שלי", "🤝 My balance");
+    const mine = S.balances.find(b=>b.id===S.user.id)?.balance || 0;
+    if(Math.abs(mine)<0.01) balHTML = `<div class="value" style="color:var(--good-text)">${t("מאוזן ✓", "Settled ✓")}</div><div class="delta">${t("אין חובות פתוחים מולך", "No open debts involving you")}</div>`;
+    else if(mine>0) balHTML = `<div class="value amount-pos">${fmt(mine)}</div><div class="delta">${t("מגיע לך מהשותפים 💰", "The roommates owe you 💰")}</div>`;
+    else balHTML = `<div class="value amount-neg">${fmt(-mine)}</div><div class="delta">${t("עליך להחזיר — פרטים בהוצאות", "You owe — details in Expenses")}</div>`;
+  }
+  // מסתירים את כרטיס ההתחשבנות לזוגות (הנתונים ממשיכים להיחשב — המעבר הפיך)
+  document.getElementById("settleCard").style.display = couple ? "none" : "";
 
   const openItems = S.shopping.filter(i=>!i.done);
   const urgent = openItems.filter(i=>i.urgent).length;
@@ -1812,7 +1878,7 @@ function renderDash(){
   document.getElementById("dashTiles").innerHTML = `
     <div class="tile"><div class="label">${t("💸 ההוצאות שלי", "💸 My spending")} · ${monthLabel(viewMonth)}</div>
       <div class="value">${fmt(myTotal)}</div>${deltaHTML}</div>
-    <div class="tile"><div class="label">${t("🤝 המאזן שלי", "🤝 My balance")}</div>${balHTML}</div>
+    <div class="tile"><div class="label">${balLabel}</div>${balHTML}</div>
     <div class="tile"><div class="label">${t("🛒 רשימת קניות", "🛒 Shopping list")}</div>
       <div class="value">${openItems.length}</div>
       <div class="delta ${urgent?'up-bad':''}">${urgent ? t(`${urgent} פריטים דחופים`, `${urgent} urgent items`) : t("פריטים ממתינים", "items waiting")}</div></div>
@@ -2002,7 +2068,19 @@ function renderChores(){
     </div>`).join("") : `<div class="empty"><span class="e">🧽</span>${t("אין מטלות — מוסיפים למטה", "No chores — add one below")}</div>`;
 }
 
+async function setHouseKind(kind){
+  if(kind === S.household.kind) return;
+  try{
+    await api("/household","PATCH",{kind});
+    await loadState();
+    toast(kind==="couple" ? t("עברתם למצב זוג","Switched to couple mode")
+                          : t("עברתם למצב שותפים","Switched to roommates mode"), "success");
+  }catch(e){ toast(e.message); }
+}
 function renderSettings(){
+  const couple = S.household.kind === "couple";
+  document.getElementById("setKindRoommates").classList.toggle("active", !couple);
+  document.getElementById("setKindCouple").classList.toggle("active", couple);
   document.getElementById("hhInfo").innerHTML =
     `<div style="font-size:13.5px">${t("שם הדירה:", "Home name:")} <b>${esc(S.household.name)}</b></div>`;
   document.getElementById("inviteCode").textContent = S.household.invite_code;

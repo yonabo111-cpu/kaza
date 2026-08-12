@@ -20,10 +20,14 @@ def create_household():
     """Create a household, seed its defaults, and join the creator to it."""
     if g.user["household_id"]:
         return err("כבר יש לך דירה משויכת")
-    name = clean_text(body().get("name"))
+    d = body()
+    name = clean_text(d.get("name"))
     if not name or len(name) > 60:
         return err("נא להזין שם לדירה (עד 60 תווים)")
-    household_id = households_repo.create(name, households_service.new_invite_code())
+    kind = d.get("kind") or "roommates"
+    if kind not in households_service.KINDS:
+        return err("סוג בית לא תקין")
+    household_id = households_repo.create(name, households_service.new_invite_code(), kind)
     users_repo.set_household(g.user["id"], household_id)
     households_service.seed_household(household_id, g.user["id"])
     return jsonify(ok=True)
@@ -40,6 +44,17 @@ def join_household():
     if row is None:
         return err("קוד הזמנה לא נמצא — בדקו שוב")
     users_repo.set_household(g.user["id"], row["id"])
+    return jsonify(ok=True)
+
+
+@bp.patch("/api/household")
+@household_required
+def update_household():
+    """Switch the household between roommates and couple mode."""
+    kind = body().get("kind")
+    if kind not in households_service.KINDS:
+        return err("סוג בית לא תקין")
+    households_repo.set_kind(g.hid, kind)
     return jsonify(ok=True)
 
 

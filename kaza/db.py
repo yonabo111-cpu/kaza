@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS households(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   invite_code TEXT NOT NULL UNIQUE,
+  kind TEXT NOT NULL DEFAULT 'roommates'
+    CHECK(kind IN ('roommates','couple')),
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS users(
@@ -201,6 +203,12 @@ def init_db(app: Flask) -> None:
 
 def _run_migrations(conn: sqlite3.Connection) -> None:
     """Additive schema changes that keep existing databases compatible."""
+    # Household kind: 'roommates' (default) settles up between members;
+    # 'couple' pools money, so the who-owes-whom view is hidden.
+    household_cols = [row[1] for row in conn.execute("PRAGMA table_info(households)")]
+    if "kind" not in household_cols:
+        conn.execute("ALTER TABLE households ADD COLUMN kind TEXT NOT NULL DEFAULT 'roommates'")
+
     user_cols = [row[1] for row in conn.execute("PRAGMA table_info(users)")]
     if "personal_budget" not in user_cols:
         conn.execute("ALTER TABLE users ADD COLUMN personal_budget REAL NOT NULL DEFAULT 0")

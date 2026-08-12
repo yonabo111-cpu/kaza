@@ -57,6 +57,7 @@ def build_state(household_id: int, user: Row, month: str) -> dict[str, Any]:
             "id": household["id"],
             "name": household["name"],
             "invite_code": household["invite_code"],
+            "kind": household["kind"],
         },
         "members": member_list,
         "month": month,

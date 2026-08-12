@@ -11,12 +11,17 @@ def get(household_id: int) -> Row | None:
     return get_db().execute("SELECT * FROM households WHERE id=?", (household_id,)).fetchone()
 
 
-def create(name: str, invite_code: str) -> int:
-    """Insert a new household and return its id."""
+def create(name: str, invite_code: str, kind: str = "roommates") -> int:
+    """Insert a new household (``kind`` = roommates | couple) and return its id."""
     cur = get_db().execute(
-        "INSERT INTO households(name,invite_code) VALUES (?,?)", (name, invite_code)
+        "INSERT INTO households(name,invite_code,kind) VALUES (?,?,?)", (name, invite_code, kind)
     )
     return cur.lastrowid
+
+
+def set_kind(household_id: int, kind: str) -> None:
+    """Switch a household between 'roommates' and 'couple'."""
+    get_db().execute("UPDATE households SET kind=? WHERE id=?", (kind, household_id))
 
 
 def find_by_invite(code: str) -> Row | None:

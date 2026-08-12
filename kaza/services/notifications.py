@@ -17,6 +17,7 @@ from kaza.models import private_expenses as private_repo
 from kaza.models import shopping as shopping_repo
 from kaza.models import users as users_repo
 from kaza.services import finance as finance_service
+from kaza.services import households as households_service
 
 # Sort order for the notification feed (most urgent first).
 _SEVERITY_RANK = {"critical": 0, "warn": 1, "info": 2}
@@ -121,7 +122,13 @@ def _personal_budget_notifications(
 
 
 def _debt_notification(household_id: int, user_id: int, month: str, out: list[dict]) -> None:
-    """Flag an open balance the user owes the household (as of this month)."""
+    """Flag an open balance the user owes the household (as of this month).
+
+    Couples pool their money and never see the settle-up view, so a debt alert
+    would point them at a screen that does not exist for them.
+    """
+    if households_service.is_couple(household_id):
+        return
     balances = finance_service.compute_balances(household_id, month)
     mine = next((b["balance"] for b in balances if b["id"] == user_id), 0)
     if mine < -0.01:

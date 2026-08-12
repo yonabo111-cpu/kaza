@@ -19,6 +19,33 @@ from kaza.services import finance as finance_service
 # Placeholder name shown for an anonymized (deleted) account in shared history.
 _DELETED_NAME = "חשבון שנמחק"
 
+# Household kinds. A couple pools money, so it never sees (or is blocked by) a
+# who-owes-whom balance; roommates settle up between themselves.
+KINDS = ("roommates", "couple")
+
+
+def is_couple(household_id: int) -> bool:
+    """True when the household pools money rather than settling up."""
+    row = households_repo.get(household_id)
+    return bool(row) and row["kind"] == "couple"
+
+
+def _settle_up_blocker(household_id: int, user_id: int, action: str) -> str | None:
+    """Return an error if an open balance should block ``action``, else ``None``.
+
+    Skipped entirely for couples: they never see balances, so blocking them on
+    one they cannot inspect (let alone settle) would trap them.
+    """
+    if is_couple(household_id):
+        return None
+    month = date.today().strftime("%Y-%m")
+    balances = finance_service.compute_balances(household_id, month)
+    mine = next((b["balance"] for b in balances if b["id"] == user_id), 0)
+    if abs(mine) >= 0.01:
+        return f"יש לך יתרה פתוחה בדירה — סגרו את ההתחשבנות לפני {action}"
+    return None
+
+
 # Invite-code alphabet without visually ambiguous characters (no 0/O, 1/I/L).
 _INVITE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 _INVITE_LENGTH = 6
@@ -94,15 +121,14 @@ def leave_household(household_id: int, user_id: int) -> str | None:
 
     Leaving is blocked while the member has an open balance — otherwise a
     departing roommate could walk away from a debt (or an uncollectable credit).
-    A solo member always nets to zero and can leave freely. On success their
-    chore assignments are cleared and their private bills removed; shared
-    expense history stays intact for the remaining members.
+    A solo member always nets to zero and can leave freely, and couples are
+    exempt (they pool money and never see balances). On success their chore
+    assignments are cleared and their private bills removed; shared expense
+    history stays intact for the remaining members.
     """
-    month = date.today().strftime("%Y-%m")
-    balances = finance_service.compute_balances(household_id, month)
-    mine = next((b["balance"] for b in balances if b["id"] == user_id), 0)
-    if abs(mine) >= 0.01:
-        return "יש לך יתרה פתוחה בדירה — סגרו את ההתחשבנות לפני עזיבה"
+    blocked = _settle_up_blocker(household_id, user_id, "עזיבה")
+    if blocked:
+        return blocked
 
     chores_repo.unassign_all(household_id, user_id)
     finance_repo.delete_private_bills_for(household_id, user_id)
@@ -126,11 +152,9 @@ def delete_account(user_id: int) -> str | None:
     household_id = user["household_id"]
 
     if household_id:
-        month = date.today().strftime("%Y-%m")
-        balances = finance_service.compute_balances(household_id, month)
-        mine = next((b["balance"] for b in balances if b["id"] == user_id), 0)
-        if abs(mine) >= 0.01:
-            return "יש לך יתרה פתוחה בדירה — סגרו את ההתחשבנות לפני מחיקת החשבון"
+        blocked = _settle_up_blocker(household_id, user_id, "מחיקת החשבון")
+        if blocked:
+            return blocked
         others = [m for m in member_ids(household_id) if m != user_id]
         chores_repo.unassign_all(household_id, user_id)
         finance_repo.delete_private_bills_for(household_id, user_id)
